@@ -1,0 +1,11 @@
+<library   file="*.cc" name="Phase2Demonstrator">
+  <use   name="SimGeneral/HepPDTRecord"/>
+  <use   name="FastSimulation/BaseParticlePropagator"/>
+  <use   name="SimDataFormats/GeneratorProducts"/>
+  <use   name="PhysicsTools/UtilAlgos"/>
+  <use   name="CommonTools/UtilAlgos"/>
+  <use   name="DataFormats/L1CaloTrigger"/>
+  <use   name="hepmc"/>
+  <use   name="root"/>
+  <flags   EDM_PLUGIN="1"/>
+</library>
