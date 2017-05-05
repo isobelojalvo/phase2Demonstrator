@@ -7,6 +7,8 @@ cd CMSSW_9_1_0_pre2/src
 eval `scramv1 runtime -sh`
 cmsenv
 git cms-merge-topic skinnari:Tracklet_91X
-
+cd L1Trigger
+git@github.com:isobelojalvo/phase2Demonstrator.git
+cd ../
 nohup scramv1 b -j 8
 ```
