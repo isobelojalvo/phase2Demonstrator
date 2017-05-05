@@ -28,6 +28,12 @@
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
 
+#include "DataFormats/EcalRecHit/interface/EcalRecHit.h"
+#include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
+#include "FastSimulation/CaloGeometryTools/interface/CaloGeometryHelper.h"
+//#include "SLHCUpgradeSimulations/L1CaloTrigger/interface/L1EGCrystalCluster.h"
+#include "Geometry/CaloTopology/interface/CaloTopology.h"
+
 ///////////////////////
 // DATA FORMATS HEADERS
 #include "DataFormats/Common/interface/Handle.h"
@@ -51,8 +57,13 @@ private:
 
   // ----------member data ---------------------------
   
+  bool debug;
+  bool useECalEndcap;
 
   edm::EDGetTokenT<HcalTrigPrimDigiCollection> hcalSrc_;   
+  edm::EDGetTokenT<EcalRecHitCollection> ecalRecHitEBToken_;
+  edm::EDGetTokenT<EcalRecHitCollection> ecalRecHitEEToken_;
+
 };
 
 
