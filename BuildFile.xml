@@ -21,6 +21,7 @@
 <use   name="FWCore/MessageLogger"/>
 <use   name="DataFormats/L1Trigger"/>
 <use   name="DataFormats/L1CaloTrigger"/>
+<use   name="DataFormats/EcalDigi"/>
 <use   name="DataFormats/HepMCCandidate"/>
 <use   name="SimDataFormats/Vertex"/>
 <use   name="SimDataFormats/TrackingHit"/>
@@ -38,6 +39,7 @@
 <use   name="root"/>
 <use   name="rootrflx"/>
 <use   name="DataFormats/L1TrackTrigger"/>
+<use   name="Geometry/HcalTowerAlgo"/>
 <export>
   <flags   SEALPLUGIN="1"/>
   <lib   name="1"/>
