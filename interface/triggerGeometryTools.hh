@@ -1,16 +1,14 @@
-#ifndef triggerGeometryTools_hh
-#define triggerGeometryTools_hh
+//#ifndef triggerGeometryTools_hh
+//#define triggerGeometryTools_hh
 
 #include "DataFormats/L1CaloTrigger/interface/L1CaloRegion.h"
 
 #include <vector>
 #include <iostream>
 
-#include "L1Trigger/L1TCaloLayer1/src/UCTRegion.hh"
-#include "L1Trigger/L1TCaloLayer1/src/UCTGeometry.hh"
-
 
 /* */
+class triggerGeometryTools{
 float upperBoundCrystalEta[86] = {  0.0174, 0.0348, 0.0522, 0.0696, 0.087, 0.1044, 0.1218, 0.1392, 0.1566, 0.174, 0.1914, 0.2088, 0.2262, 0.2436, 0.261, 0.2784, 0.2958, 0.3132, 0.3306, 0.348, 0.3654, 0.3828, 0.4002, 0.4176, 0.435, 0.4524, 0.4698, 0.4872, 0.5046, 0.522, 0.5394, 0.5568, 0.5742, 0.5916, 0.609, 0.6264, 0.6438, 0.6612, 0.6786, 0.696, 0.7134, 0.7308, 0.7482, 0.7656, 0.783, 0.8004, 0.8178, 0.8352, 0.8526, 0.87, 0.8874, 0.9048, 0.9222, 0.9396, 0.957, 0.9744, 0.9918, 1.0092, 1.0266, 1.044, 1.0614, 1.0788, 1.0962, 1.1136, 1.131, 1.1484, 1.1658, 1.1832, 1.2006, 1.218, 1.2354, 1.2528, 1.2702, 1.2876, 1.305, 1.3224, 1.3398, 1.3572, 1.3746, 1.392, 1.4094, 1.4268, 1.4442, 1.4616, 1.479, 1.4964
 };
 
@@ -50,13 +48,13 @@ float towerPhiMap[72]=
    -0.6525, -0.5655, -0.4785, -0.3915, -0.3045, -0.2175 };*/
 
 
-
-//input is iphi
-float getRecoPhi(int iphi){
-  return towerPhiMap[iphi-1];
-}
-
-//input is ieta
+public:
+  //input is iphi
+  float getRecoPhi(int iphi){
+    return towerPhiMap[iphi-1];
+  }
+  
+  //input is ieta
 float getRecoEta(int ieta, short zside){
   float eta = -999;
   if(ieta<0 || ieta>(28*2)){
@@ -76,8 +74,8 @@ float getRecoEta(int ieta, short zside){
   }
   return eta;
 }
+};
 
 
-
-#endif
+//#endif
 

@@ -4,76 +4,71 @@
 #ifndef L1CLUSTER_PRDC_H
 #define L1CLUSTER_PRDC_H
 
-////////////////////
-// FRAMEWORK HEADERS
-#include "FWCore/PluginManager/interface/ModuleDef.h"
-#include "FWCore/Framework/interface/MakerMacros.h"
-//
-#include "FWCore/Framework/interface/EDProducer.h"
-#include "FWCore/Framework/interface/Event.h"
-#include "FWCore/Framework/interface/ESHandle.h"
-#include "FWCore/Framework/interface/EventSetup.h"
-#include "FWCore/MessageLogger/interface/MessageLogger.h"
-//
-#include "FWCore/Utilities/interface/InputTag.h"
-#include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "FWCore/ServiceRegistry/interface/Service.h"
-#include "DataFormats/EcalDigi/interface/EcalDigiCollections.h"
-#include "DataFormats/HcalDigi/interface/HcalDigiCollections.h"
-#include "CondFormats/L1TObjects/interface/L1CaloHcalScale.h"
-#include "CondFormats/DataRecord/interface/L1CaloHcalScaleRcd.h"
-#include "FWCore/Framework/interface/ESHandle.h"
-#include "DataFormats/VertexReco/interface/VertexFwd.h"
-#include "DataFormats/VertexReco/interface/Vertex.h"
-#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
-#include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
-
-#include "Geometry/CaloEventSetup/interface/CaloTopologyRecord.h"
-#include "Geometry/Records/interface/CaloGeometryRecord.h"
-#include "Geometry/CaloGeometry/interface/CaloSubdetectorGeometry.h"
-
-#include "Geometry/CaloGeometry/interface/CaloGeometry.h"
-#include "Geometry/EcalAlgo/interface/EcalBarrelGeometry.h"
-#include "Geometry/EcalAlgo/interface/EcalEndcapGeometry.h"
-#include "Geometry/CaloGeometry/interface/CaloCellGeometry.h"
 #include <iostream>
-
-#include "DataFormats/EcalRecHit/interface/EcalRecHit.h"
-#include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
-#include "FastSimulation/CaloGeometryTools/interface/CaloGeometryHelper.h"
-//#include "SLHCUpgradeSimulations/L1CaloTrigger/interface/L1EGCrystalCluster.h"
-#include "Geometry/CaloTopology/interface/CaloTopology.h"
-
-#include "FWCore/Framework/interface/Event.h"
-#include "FWCore/Framework/interface/MakerMacros.h"
-#include "Geometry/CommonDetUnit/interface/GeomDet.h"
-#include "Geometry/Records/interface/TrackerDigiGeometryRecord.h"
-//#include "SimDataFormats/CaloTest/interface/HcalTestNumbering.h"
-#include "DataFormats/HcalDetId/interface/HcalSubdetector.h"
-#include "DataFormats/HcalDetId/interface/HcalDetId.h"
-
-#include "DataFormats/HcalRecHit/interface/HcalRecHitCollections.h"
-#include "DataFormats/HcalRecHit/interface/HcalSourcePositionData.h"
-
-#include "Geometry/Records/interface/IdealGeometryRecord.h"
-///////////////////////
-// DATA FORMATS HEADERS
-#include "DataFormats/Common/interface/Handle.h"
-#include "DataFormats/Common/interface/Ref.h"
-
-#include "Geometry/HcalTowerAlgo/interface/HcalTrigTowerGeometry.h"
-#include "Geometry/HcalTowerAlgo/interface/HcalGeometry.h"
-#include "DataFormats/HcalDigi/interface/HcalTriggerPrimitiveDigi.h"
-
 #include <math.h>
 #include <vector>
 #include <list>
 #include <TLorentzVector.h>
 
-#include "L1Trigger/phase2Demonstrator/interface/triggerGeometryTools.hh"
+////////////////////
+// FRAMEWORK HEADERS
+#include "FWCore/PluginManager/interface/ModuleDef.h"
+#include "FWCore/Framework/interface/MakerMacros.h"
+#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/ESHandle.h"
+#include "FWCore/Framework/interface/EventSetup.h"
+#include "FWCore/Utilities/interface/InputTag.h"
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/ServiceRegistry/interface/Service.h"
+#include "DataFormats/Common/interface/Handle.h"
+#include "DataFormats/Common/interface/Ref.h"
+
+//L1 TPG Legacy
+#include "DataFormats/EcalDigi/interface/EcalDigiCollections.h"
+#include "DataFormats/HcalDigi/interface/HcalDigiCollections.h"
+#include "CondFormats/L1TObjects/interface/L1CaloHcalScale.h"
+#include "CondFormats/DataRecord/interface/L1CaloHcalScaleRcd.h"
+#include "DataFormats/HcalDigi/interface/HcalTriggerPrimitiveDigi.h"
+
+//Vertex and gen particle
+//#include "DataFormats/VertexReco/interface/VertexFwd.h"
+//#include "DataFormats/VertexReco/interface/Vertex.h"
+//#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+//#include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
+
+#include "Geometry/CaloEventSetup/interface/CaloTopologyRecord.h"
+#include "Geometry/Records/interface/CaloGeometryRecord.h"
+#include "Geometry/CaloGeometry/interface/CaloSubdetectorGeometry.h"
+#include "Geometry/CaloGeometry/interface/CaloGeometry.h"
+#include "Geometry/EcalAlgo/interface/EcalBarrelGeometry.h"
+#include "Geometry/EcalAlgo/interface/EcalEndcapGeometry.h"
+#include "Geometry/CaloGeometry/interface/CaloCellGeometry.h"
+
+//ECALREC Hit Headers
+//#include "DataFormats/EcalRecHit/interface/EcalRecHit.h"
+//#include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
+//#include "FastSimulation/CaloGeometryTools/interface/CaloGeometryHelper.h"
+
+//Geometry
+#include "Geometry/CaloTopology/interface/CaloTopology.h"
+#include "Geometry/CommonDetUnit/interface/GeomDet.h"
+#include "Geometry/Records/interface/TrackerDigiGeometryRecord.h"
+#include "Geometry/Records/interface/IdealGeometryRecord.h"
+#include "Geometry/HcalTowerAlgo/interface/HcalTrigTowerGeometry.h"
+#include "Geometry/HcalTowerAlgo/interface/HcalGeometry.h"
+
+//#include "DataFormats/HcalDetId/interface/HcalSubdetector.h"
+//#include "DataFormats/HcalDetId/interface/HcalDetId.h"
+//#include "DataFormats/HcalRecHit/interface/HcalRecHitCollections.h"
+//#include "DataFormats/HcalRecHit/interface/HcalSourcePositionData.h"
+
+
 #include "DataFormats/L1CaloTrigger/interface/L1CaloCollections.h"
+#include "L1Trigger/phase2Demonstrator/interface/triggerGeometryTools.hh"
+
 using std::vector;
-//typedef edm::SortedCollection<EcalEBTriggerPrimitiveDigi,edm::StrictWeakOrdering<EcalEBTriggerPrimitiveDigi> > defEcalDigis ;
 
 typedef EcalTrigPrimDigiCollection defEcalDigis;
 
@@ -105,15 +100,31 @@ private:
   edm::ESHandle<HcalTopology> hbTopology;
   const HcalTopology * hcTopology_;
 
-  struct ecalCrystal{
+  struct ecalCrystal_t{
     TLorentzVector p4;
     float iEta;
     float iPhi;
     EBDetId id;
   } ;
   
-  void getEcalCrystals(edm::Handle<EcalEBTrigPrimDigiCollection> ecaltpgs, vector<ecalCrystal> ecalCrystals);
-  void getHcalTPGs( edm::Handle<edm::SortedCollection<HcalTriggerPrimitiveDigi> > hcaltpgCollection, edm::ESHandle<L1CaloHcalScale> &hcalScale, vector<TLorentzVector> *allHcalTPGs);
+  void getEcalCrystals(edm::Handle<EcalEBTrigPrimDigiCollection> ecaltpgs, 
+		       vector<ecalCrystal_t> &ecalCrystals);
+
+  float findEcalCrystal(int tEta, int tPhi, int cEta, int cPhi, 
+			vector<ecalCrystal_t> ecalCrystals, 
+			ecalCrystal_t &foundCrystal);
+
+  void getHcalTPGs( edm::Handle<edm::SortedCollection<HcalTriggerPrimitiveDigi> > hcaltpgCollection, 
+		    edm::ESHandle<L1CaloHcalScale> &hcalScale, 
+		    vector<TLorentzVector> &allHcalTPGs);
+
+  void clusterAlgoMaxInternet(unsigned int crystals[25], 
+			      unsigned int &maxCrystalEta, 
+			      unsigned int &maxCrystalPhi);
+
+  void clusterAlgoMax(unsigned int crystals[5][5], 
+		      unsigned int &maxCrystalEta, 
+		      unsigned int &maxCrystalPhi);
 
   int TPGEtaRange(int ieta){
     int iEta = 0;
@@ -129,7 +140,6 @@ private:
     }
     return iEta;
   }
-
 
 
 };
