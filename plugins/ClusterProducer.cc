@@ -8,28 +8,8 @@
  Description: Level 1 Clusters for the Demonstrator
 
  Implementation:
-     [Notes on implementation]
-*/
 
-
-#include "L1Trigger/phase2Demonstrator/interface/ClusterProducer.hh"
-
-
-ClusterProducer::ClusterProducer(const edm::ParameterSet& cfg) :
-  //ecalSrc_(consumes<EcalTrigPrimDigiCollection>(cfg.getParameter<edm::InputTag>("ecalDigis"))),
-  debug(cfg.getUntrackedParameter<bool>("debug", false)),
-  ecalTPGBToken_(consumes<EcalEBTrigPrimDigiCollection>(cfg.getParameter<edm::InputTag>("ecalTPGsBarrel"))),
-  hcalSrc_(consumes<edm::SortedCollection<HcalTriggerPrimitiveDigi> >(cfg.getParameter<edm::InputTag>("hcalTPGs")))
-{
-  produces< L1CaloClusterCollection >( "L1Phase2CaloClusters" ).setBranchAlias("L1Phase2CaloClusters");
-
-}
-
-//////////
-// PRODUCE
-
-
-  /* Caloclusters are filled using following format
+   Caloclusters are filled using following format
    *                           2880 TOTAL CLUSTERS 
    *       iEta
    *       |-20                    -1 || 1                        20|
@@ -40,12 +20,26 @@ ClusterProducer::ClusterProducer(const edm::ParameterSet& cfg) :
    *      .|   .    .    .            ||
    *      .|   .    .    .            ||                        2878
    *     72|  71  143  215            ||                        2879
-   */
+   
 
+*/
+
+
+#include "L1Trigger/phase2Demonstrator/interface/ClusterProducer.hh"
+
+
+ClusterProducer::ClusterProducer(const edm::ParameterSet& cfg) :
+  debug(cfg.getUntrackedParameter<bool>("debug", false)),
+  ecalTPGBToken_(consumes<EcalEBTrigPrimDigiCollection>(cfg.getParameter<edm::InputTag>("ecalTPGsBarrel"))),
+  hcalSrc_(consumes<edm::SortedCollection<HcalTriggerPrimitiveDigi> >(cfg.getParameter<edm::InputTag>("hcalTPGs")))
+{
+  produces< L1CaloClusterCollection >( "L1Phase2CaloClusters" ).setBranchAlias("L1Phase2CaloClusters");
+
+}
 
 void ClusterProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-
+  // Output Collecction
   std::unique_ptr<L1CaloClusterCollection> newClusters( new L1CaloClusterCollection );
 
   // Set up the ECAL Crystals
@@ -58,23 +52,27 @@ void ClusterProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.getByToken( ecalTPGBToken_, ecaltpgCollection);
   vector<ecalCrystal_t> ecalCrystals;
 
+
+  // Get the ECAL Crystals as ecalCrystal_t
   getEcalCrystals(ecaltpgCollection, ecalCrystals);
   
+
   edm::Handle<edm::SortedCollection<HcalTriggerPrimitiveDigi> > hcalTPGCollection;
   vector<TLorentzVector> hcalTPGs;
-
+  
   if(!iEvent.getByToken(hcalSrc_, hcalTPGCollection))
     std::cout<<"ERROR GETTING THE HCAL TPGS"<<std::endl;
 
   edm::ESHandle<L1CaloHcalScale> hcalScale;
   iSetup.get<L1CaloHcalScaleRcd>().get(hcalScale);
 
+
+  // Get the HCAL TPGs as TLorentzVector 
   getHcalTPGs(hcalTPGCollection, hcalScale, hcalTPGs);
 
   // For each ieta/iphi produce a grid of 5x5 (make configurable to 3x5?)
   // The collection is produced in the ordered format as seen above. 
   // Loop over all towers in eta
-
   for(int tEta = -20; tEta < 20; tEta++){
 
     //skip tower eta == 0
@@ -92,7 +90,7 @@ void ClusterProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       
       L1CaloCluster tempCluster;
       
-      //find the HCAL tpg
+      // Intialize member data
       float HCALEt = 0;
       float pt     = 0;
       float central_eta  = tRecoEta; //central cluster Reco Eta
@@ -104,7 +102,7 @@ void ClusterProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       unsigned int maxCrystalEta = 2; 
       unsigned int maxCrystalPhi = 2;
       
-      //find matched hcalTPG
+      //Find matching HcalTPG
       for(auto hcalTPG : hcalTPGs){
 	if(hcalTPG.DeltaR( tempCluster.p4())< 0.08727/2 ){
 	  HCALEt = hcalTPG.Pt();
@@ -136,7 +134,7 @@ void ClusterProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    //std::cout<<"crystal et "<< crystals[cEta][cPhi]<< " cEta, cPhi "<< cEta<< ", " << cPhi<<std::endl;
 	    //}
 	}
-      }
+      } // End ecal crystal matching
 
       pt = sumCrystals + HCALEt;
       clusterAlgoMax(crystals, maxCrystalEta, maxCrystalPhi);

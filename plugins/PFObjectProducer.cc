@@ -76,6 +76,7 @@ void PFObjectProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 	newNeutralCluster.setEt(cluster.et()-l1Track.getMomentum().perp());
       }
     }
+
     newL1PFObjects->push_back(newL1PFObject);
     newL1NeutralClusters->push_back(newNeutralCluster);
   }

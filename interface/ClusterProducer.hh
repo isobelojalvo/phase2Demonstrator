@@ -70,8 +70,6 @@
 
 using std::vector;
 
-typedef EcalTrigPrimDigiCollection defEcalDigis;
-
 class ClusterProducer : public edm::EDProducer {
 
 public:
