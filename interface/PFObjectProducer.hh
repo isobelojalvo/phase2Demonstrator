@@ -111,7 +111,8 @@ private:
   virtual void produce( edm::Event& iEvent, const edm::EventSetup& iSetup );
   
   bool debug;
-
+  int input_EoH_cut_;
+  int input_HoE_cut_;
   edm::EDGetTokenT< L1CaloClusterCollection > L1ClustersToken_;
   edm::EDGetTokenT< std::vector< TTTrack< Ref_Phase2TrackerDigi_ > > > ttTrackToken_;
 

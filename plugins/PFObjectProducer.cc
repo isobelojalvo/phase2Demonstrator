@@ -17,6 +17,8 @@
 
 PFObjectProducer::PFObjectProducer(const edm::ParameterSet& cfg) :
   debug(cfg.getUntrackedParameter<bool>("debug", false)),
+  input_EoH_cut_(cfg.getUntrackedParameter<int>("EoH_cut", 2)), // LSB is 0.1 so 2 corresonds to 0.2
+  input_HoE_cut_(cfg.getUntrackedParameter<int>("HoE_cut", 8)), // LSB is 0.1 so 8 corresonds to 0.8
   L1ClustersToken_(consumes< L1CaloClusterCollection >(cfg.getParameter<edm::InputTag>("L1Clusters")))
 {
   L1TrackInputTag = cfg.getParameter<edm::InputTag>("L1TrackInputTag");
@@ -54,32 +56,85 @@ void PFObjectProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
       //only using tracks with eta less than 1.5 and pt greater than 2.5 GeV
       if(abs(eta)<1.5 && pt > 2.5)
 	l1Tracks.push_back(l1trackHandle->at(track_index));       
+
     }
 
+  if(debug){
+    std::cout<<"PFObject Producer "<<l1trackHandle->size()<<" tracks found"<<std::endl;}
+
   std::sort(l1Tracks.begin(), l1Tracks.end(), [](TTTrack< Ref_Phase2TrackerDigi_ > i,TTTrack< Ref_Phase2TrackerDigi_ > j){return(i.getMomentum().perp() > j.getMomentum().perp());});   
-  
+
+  if(debug){
+    std::cout<<"PFObject Producer "<<l1CaloClusters->size()<<" caloclusters found"<<std::endl;}
+
+  int nElectrons = 0;
+  int nPhotons = 0;
+  int nChargedHadrons = 0;
+  int nNeutralHadrons = 0;
   
   for(unsigned int i = 0; i < l1CaloClusters->size(); i++){
     L1CaloCluster cluster = l1CaloClusters->at(i);
     L1CaloCluster newNeutralCluster;
-    L1PFObject newL1PFObject;
-    newNeutralCluster.setEt(cluster.et());
-    newNeutralCluster.setTowerEta(cluster.towerEta());
-    newNeutralCluster.setTowerPhi(cluster.towerPhi());
+
+    newNeutralCluster.setEt( cluster.et() );
+    newNeutralCluster.setTowerEta( cluster.towerEta() );
+    newNeutralCluster.setTowerPhi( cluster.towerPhi() );
 
     for(auto l1Track : l1Tracks){
+      L1PFObject newL1PFObject;
+
+      //note: implement me
+      newL1PFObject.L1Track() = l1Track;
+      
+      //change me to ieta iphi
       if((l1Track.getMomentum().eta() - cluster.p4().Eta() < 0.087) && (l1Track.getMomentum().phi() - cluster.p4().Phi() < 0.087)){
 
-	/// Take the cluster, use h/e to determine if hadron or electron/pi0 
+	// Take the cluster, use h/e to determine if hadron or electron/pi0 
+	// note: implement me
+	newL1PFObject.hcalEnergy() = cluster.hcalEnergy();
+	newL1PFObject.ecalEnergy() = cluster.ecalEnergy();
+	newL1PFObject.caloEnergy() = cluster.caloEnergy();
+	newL1PFObject.HoE() = cluster.HoE();
+	newL1PFObject.EoH() = cluster.EoH();
 
-	/// Subtract track pt to create Neutrals
-	newNeutralCluster.setEt(cluster.et()-l1Track.getMomentum().perp());
+	// Electron ID
+	if(cluster.EoH() > input_EoH_cut_){
+	  newL1PFObject.isElectron()      = true;
+	}
+	if(cluster.HoE() > input_HoE_cut_){
+	  newL1PFObject.isChargedHadron() = true;
+	}
+
+	/// Subtract track pt to create Neutral Photons and Hadrons
+	if(l1Track.getMomentum().perp() < cluster.et()){
+	  newNeutralCluster.setEt(cluster.et() - l1Track.getMomentum().perp());
+
+	  if(cluster.EoH() > input_EoH_cut_){
+	    newNeutralCluster.isPhoton()        = true;
+	  }
+	  else{
+	    newNeutralCluster.isNeutralHadron() = true;
+	  }
+	}
+	else if(l1Track.getMomentum().perp() > cluster.et()){
+	  
+	  if(debug){
+	    //note implement the tower eta for track and cluster p4 (if not already there)
+	    std::cout<<"---------------------------------"<<std::endl;
+	    std::cout<<"The Track Momentum is greater than the Cluster Momentum"<<std::endl;
+	    std::cout<<"Cluster iEta: "<< cluster.towerEta() << " iPhi: "<< cluster.towerPhi() <<" Reco eta: "<< cluster.p4().Eta() <<" Reco Phi "<< cluster.p4().Phi()<<std::endl;
+	    std::cout<<"Track   iEta: "<< track.towerEta()   << " iPhi: "<< track.towerPhi()   <<" Reco eta: "<< track.p4().Eta() <<" Reco Phi "<< track.p4().Phi()<<std::endl;
+	    std::cout<<"---------------------------------"<<std::endl;
+	  }
+	}
       }
     }
 
     newL1PFObjects->push_back(newL1PFObject);
     newL1NeutralClusters->push_back(newNeutralCluster);
   }
+  iEvent.put( std::move(newL1PFObjects) ,       "L1PFObjects" );
+  iEvent.put( std::move(newL1NeutralClusters) , "L1NeutralClusters" );
 
 }
 
