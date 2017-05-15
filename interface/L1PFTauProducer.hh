@@ -48,6 +48,7 @@
 #include "Geometry/HcalTowerAlgo/interface/HcalTrigTowerGeometry.h"
 #include "Geometry/HcalTowerAlgo/interface/HcalGeometry.h"
 
+#include "DataFormats/L1Trigger/interface/L1PFTau.h"
 #include "DataFormats/L1CaloTrigger/interface/L1CaloCollections.h"
 #include "L1Trigger/phase2Demonstrator/interface/triggerGeometryTools.hh"
 
@@ -69,7 +70,13 @@ private:
   /// ///////////////// ///
 
   bool debug;
-
+  int input_EoH_cut_;
+  int input_HoE_cut_;
+  edm::InputTag L1TrackInputTag;
+  edm::EDGetTokenT< L1CaloClusterCollection > L1ClustersToken_;
+  edm::EDGetTokenT< std::vector< TTTrack< Ref_Phase2TrackerDigi_ > > > ttTrackToken_;
+  edm::EDGetTokenT< L1PFObjectCollection > L1PFToken_;
+  edm::EDGetTokenT< std::vector< L1CaloClusterCollection> > L1NeutralToken_;
 
 };
 

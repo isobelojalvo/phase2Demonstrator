@@ -100,10 +100,12 @@ void PFObjectProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 
 	// Electron ID
 	if(cluster.EoH() > input_EoH_cut_){
-	  newL1PFObject.isElectron()      = true;
+	  newL1PFObject.setIsElectron(true);
+	  nElectrons++;
 	}
 	if(cluster.HoE() > input_HoE_cut_){
-	  newL1PFObject.isChargedHadron() = true;
+	  newL1PFObject.setIsChargedHadron(true);
+	  nChargedHadrons++;
 	}
 
 	/// Subtract track pt to create Neutral Photons and Hadrons
@@ -111,29 +113,40 @@ void PFObjectProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 	  newNeutralCluster.setEt(cluster.et() - l1Track.getMomentum().perp());
 
 	  if(cluster.EoH() > input_EoH_cut_){
-	    newNeutralCluster.isPhoton()        = true;
+	    newNeutralCluster.setIsPhoton(true);
+	    nPhotons++;
 	  }
 	  else{
-	    newNeutralCluster.isNeutralHadron() = true;
+	    newNeutralCluster.setIsNeutralHadron(true);
+	    nNeutralHadrons++;
 	  }
 	}
 	else if(l1Track.getMomentum().perp() > cluster.et()){
 	  
 	  if(debug){
-	    //note implement the tower eta for track and cluster p4 (if not already there)
+	    //note implement the tower eta for l1Track and cluster p4 (if not already there)
 	    std::cout<<"---------------------------------"<<std::endl;
 	    std::cout<<"The Track Momentum is greater than the Cluster Momentum"<<std::endl;
 	    std::cout<<"Cluster iEta: "<< cluster.towerEta() << " iPhi: "<< cluster.towerPhi() <<" Reco eta: "<< cluster.p4().Eta() <<" Reco Phi "<< cluster.p4().Phi()<<std::endl;
-	    std::cout<<"Track   iEta: "<< track.towerEta()   << " iPhi: "<< track.towerPhi()   <<" Reco eta: "<< track.p4().Eta() <<" Reco Phi "<< track.p4().Phi()<<std::endl;
+	    std::cout<<"Track Reco eta: "<< l1Track.getMomentum().eta() <<" Reco Phi "<< l1Track.getMomentum().phi()<<std::endl; //   iEta: "<< l1Track.towerEta()   << " iPhi: "<< l1Track.towerPhi()   
+	      
 	    std::cout<<"---------------------------------"<<std::endl;
 	  }
 	}
+	newL1PFObjects->push_back(newL1PFObject);
       }
     }
 
-    newL1PFObjects->push_back(newL1PFObject);
     newL1NeutralClusters->push_back(newNeutralCluster);
   }
+  std::cout<<"------------ Event Summary From PF Object Producer ------------"<<std::endl;
+  std::cout<<"nElectrons:      "<<nElectrons<<std::endl;
+  std::cout<<"nPhotons:        "<<nPhotons<<std::endl;
+  std::cout<<"nChargedHadrons: "<<nChargedHadrons<<std::endl;
+  std::cout<<"nNeutralHadrons: "<<nNeutralHadrons<<std::endl;
+
+
+
   iEvent.put( std::move(newL1PFObjects) ,       "L1PFObjects" );
   iEvent.put( std::move(newL1NeutralClusters) , "L1NeutralClusters" );
 
