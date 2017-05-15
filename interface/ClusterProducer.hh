@@ -116,11 +116,11 @@ private:
 		    edm::ESHandle<L1CaloHcalScale> &hcalScale, 
 		    vector<TLorentzVector> &allHcalTPGs);
 
-  void clusterAlgoMaxInternet(unsigned int crystals[25], 
+  void clusterAlgoMaxInternet(float crystals[25], 
 			      unsigned int &maxCrystalEta, 
 			      unsigned int &maxCrystalPhi);
 
-  void clusterAlgoMax(unsigned int crystals[5][5], 
+  void clusterAlgoMax(float crystals[5][5], 
 		      unsigned int &maxCrystalEta, 
 		      unsigned int &maxCrystalPhi);
 

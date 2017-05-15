@@ -24,8 +24,8 @@ PFObjectProducer::PFObjectProducer(const edm::ParameterSet& cfg) :
   L1TrackInputTag = cfg.getParameter<edm::InputTag>("L1TrackInputTag");
   ttTrackToken_ = consumes< std::vector< TTTrack< Ref_Phase2TrackerDigi_ > > >(L1TrackInputTag);  
 
-  produces< L1CaloClusterCollection >( "L1Phase2NeutralClusters" ).setBranchAlias("L1Phase2NeutralClusters");
-  produces< L1PFObjectCollection >( "L1Phase2PFObjects" ).setBranchAlias("L1Phase2PFObjects");
+  produces< L1CaloClusterCollection >( "L1NeutralClusters" ).setBranchAlias("L1NeutralClusters");
+  produces< L1PFObjectCollection >( "L1PFObjects" ).setBranchAlias("L1PFObjects");
 }
 
 
@@ -121,6 +121,7 @@ void PFObjectProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 	    nNeutralHadrons++;
 	  }
 	}
+
 	else if(l1Track.getMomentum().perp() > cluster.et()){
 	  
 	  if(debug){
@@ -133,6 +134,10 @@ void PFObjectProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 	    std::cout<<"---------------------------------"<<std::endl;
 	  }
 	}
+
+	if(debug)
+	  std::cout<<newL1PFObject<<std::endl;
+
 	newL1PFObjects->push_back(newL1PFObject);
       }
     }

@@ -1,7 +1,7 @@
 # define basic process
 import FWCore.ParameterSet.Config as cms
 import os
-process = cms.Process("L1CaloClusters")
+process = cms.Process("L1PFObjectMaker")
  
 
 # import standard configurations
@@ -28,70 +28,43 @@ Source_Files = cms.untracked.vstring(
 process.source = cms.Source("PoolSource", fileNames = Source_Files)
 
 
-# --------------------------------------------------------------------------------------------
-#
-# ----    Produce the ECAL TPs
+############################################################
+# L1 tracking
+############################################################
 
-#process.simEcalEBTriggerPrimitiveDigis = cms.EDProducer("EcalEBTrigPrimProducer",
-process.EcalEBTrigPrimProducer = cms.EDProducer("EcalEBTrigPrimProducer",
-    BarrelOnly = cms.bool(True),
-#    barrelEcalDigis = cms.InputTag("simEcalUnsuppressedDigis","ebDigis"),
-    barrelEcalDigis = cms.InputTag("simEcalDigis","ebDigis"),
-#    barrelEcalDigis = cms.InputTag("selectDigi","selectedEcalEBDigiCollection"),
-    binOfMaximum = cms.int32(6), ## optional from release 200 on, from 1-10
-    TcpOutput = cms.bool(False),
-    Debug = cms.bool(False),
-    Famos = cms.bool(False),
-    nOfSamples = cms.int32(1)
-)
+process.load("L1Trigger.TrackFindingTracklet.L1TrackletTracks_cff")
 
-process.pNancy = cms.Path( process.EcalEBTrigPrimProducer )
+# run only the tracking (no MC truth associators)
+process.TTTracks = cms.Path(process.L1TrackletTracks)
 
+# run the tracking AND MC truth associators)
+process.TTTracksWithTruth = cms.Path(process.L1TrackletTracksWithAssociators)
 
+############################################################
+# L1 clusters
+############################################################
 
-# --------------------------------------------------------------------------------------------
-#
-# ----    Produce the L1EGCrystal clusters (code of Sasha Savin)
-
-# first you need the ECAL RecHIts :
-#process.load('Configuration.StandardSequences.Reconstruction_cff')
-#process.reconstruction_step = cms.Path( process.calolocalreco )
-
-process.L1EGammaCrystalsProducer = cms.EDProducer("L1EGCrystalClusterProducer",
-   EtminForStore = cms.double(0.),
-   debug = cms.untracked.bool(False),
-   useRecHits = cms.bool(False),
-   ecalRecHitEB = cms.InputTag("ecalRecHit","EcalRecHitsEB","RECO"),
-   ecalTPEB = cms.InputTag("EcalEBTrigPrimProducer","","L1AlgoTest"),
-   #hcalRecHit = cms.InputTag("hbhereco") # for testing non-2023 geometry configurations
-   #hcalRecHit = cms.InputTag("hltHbhereco","","L1AlgoTest")
-   #hcalRecHit = cms.InputTag("hltHbhereco")
-   hcalRecHit = cms.InputTag("hbhereco"),
-   #hcalRecHit = cms.InputTag("hbheUpgradeReco")
-   hcalTP = cms.InputTag("simHcalTriggerPrimitiveDigis","","HLT"),
-
-   #useTowerMap = cms.untracked.bool(False)
-   useTowerMap = cms.untracked.bool(True)
-   #towerMapName = cms.untracked.string("map1.json")
-)
-
-process.pSasha = cms.Path( process.L1EGammaCrystalsProducer )
-##--------
-
-# L1 Cluster Producer
 process.load("L1Trigger.phase2Demonstrator.L1CaloClusterProducer_cff")
 process.L1Clusters = cms.Path(process.L1CaloClusterProducer)
+
+############################################################
+# L1 pf object
+############################################################
+
+process.load("L1Trigger.phase2Demonstrator.L1PFProducer_cff")
+process.L1PFObjects = cms.Path(process.L1PFProducer)
+process.L1PFProducer.debug = cms.untracked.bool(True)
 
 # output module
 process.out = cms.OutputModule( "PoolOutputModule",
                                 fileName = cms.untracked.string("CaloClusters.root"),
                                 fastCloning = cms.untracked.bool( False ),
-                                outputCommands = cms.untracked.vstring('drop *',
-#                                                                       'keep *_*_L1Phase2CaloClusters_*', 
+                                outputCommands = cms.untracked.vstring(#'drop *',
+                                                                       'keep *_*_L1Phase2CaloClusters_*', 
                                                                        )
 )
 process.FEVToutput_step = cms.EndPath(process.out)
 
-process.schedule = cms.Schedule(process.L1Clusters,process.FEVToutput_step)
+process.schedule = cms.Schedule(process.L1Clusters,process.TTTracksWithTruth,process.L1PFObjects,process.FEVToutput_step)
 
 

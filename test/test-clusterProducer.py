@@ -30,6 +30,7 @@ process.source = cms.Source("PoolSource", fileNames = Source_Files)
 
 # L1 Cluster Producer
 process.load("L1Trigger.phase2Demonstrator.L1CaloClusterProducer_cff")
+process.L1CaloClusterProducer.debug = cms.untracked.bool(False)
 process.L1Clusters = cms.Path(process.L1CaloClusterProducer)
 
 # output module

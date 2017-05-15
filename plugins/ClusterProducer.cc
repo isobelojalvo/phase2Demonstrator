@@ -26,7 +26,7 @@
 
 
 #include "L1Trigger/phase2Demonstrator/interface/ClusterProducer.hh"
-
+#define LSB 10
 
 ClusterProducer::ClusterProducer(const edm::ParameterSet& cfg) :
   debug(cfg.getUntrackedParameter<bool>("debug", false)),
@@ -70,6 +70,7 @@ void ClusterProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   // Get the HCAL TPGs as TLorentzVector 
   getHcalTPGs(hcalTPGCollection, hcalScale, hcalTPGs);
 
+  int nPrints = 0;
   // For each ieta/iphi produce a grid of 5x5 (make configurable to 3x5?)
   // The collection is produced in the ordered format as seen above. 
   // Loop over all towers in eta
@@ -97,15 +98,16 @@ void ClusterProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       float central_phi  = tRecoPhi; //central cluster Reco Phi
       float sumCrystals  = 0; 
       float maxCrystalEt = 0;
+      float crystals[5][5] = {{0}};
 
-      unsigned int crystals[5][5] = {{0}};
       unsigned int maxCrystalEta = 2; 
       unsigned int maxCrystalPhi = 2;
       
       //Find matching HcalTPG
       for(auto hcalTPG : hcalTPGs){
-	if(hcalTPG.DeltaR( tempCluster.p4())< 0.08727/2 ){
-	  HCALEt = hcalTPG.Pt();
+	//fixme
+	if( abs(hcalTPG.Eta() - tRecoEta)+abs(hcalTPG.Phi() - tRecoPhi)< 0.08727 ){
+	  HCALEt = hcalTPG.Pt(); 
 	  break;
 	}
       }
@@ -115,7 +117,9 @@ void ClusterProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	//find crystal Phi
 	for(unsigned int cPhi = 0; cPhi < 5 ; cPhi++ ){
 	  ecalCrystal_t foundCrystal;
-	  crystals[cEta][cPhi] = findEcalCrystal(tEta, tPhi, cEta, cPhi, ecalCrystals, foundCrystal);
+
+	  crystals[cEta][cPhi] =  findEcalCrystal(tEta, tPhi, cEta, cPhi, ecalCrystals, foundCrystal);
+
 	  sumCrystals += crystals[cEta][cPhi];
 
 	  if(crystals[cEta][cPhi] > maxCrystalEt){
@@ -141,9 +145,21 @@ void ClusterProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       //clusterAlgoMaxStrips(crystals, maxCrystalEta, maxCrystalPhi);
       //clusterAlgoMaxInternet(crystals, maxCrystalEta, maxCrystalPhi);
 
-      //DEBUG statement
-      //if(pt>1)
-      //std::cout<<"cluster et "<<pt<<std::endl;
+      unsigned HoE = 0;
+      unsigned EoH = 0;
+      if(sumCrystals > 0 && HCALEt == 0){
+	EoH = (unsigned) (10*1); // NOTE WE MULTIPLY BY EoH LSB HERE
+      }
+      else{
+	EoH = (unsigned) (10*sumCrystals/HCALEt); // NOTE WE MULTIPLY BY EoH LSB HERE
+      }
+
+      if(sumCrystals == 0 && HCALEt > 0){
+	HoE = (unsigned) (10*1);// NOTE WE MULTIPLY BY HoE LSB HERE
+      }
+      else{
+	HoE = (unsigned) (10*HCALEt/sumCrystals); // NOTE WE MULTIPLY BY HoE LSB HERE
+      }
 
       unsigned etaSide = 0;
       if(tEta>0)
@@ -152,14 +168,32 @@ void ClusterProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       // RECO p4 only for debugging
       tempCluster.setPtEtaPhiE(pt, central_eta, central_phi, pt);
       
-      tempCluster.setEt(            (unsigned) pt              );
+      tempCluster.setEt(            (unsigned) (LSB * pt)      ); // NOTE WE MULTIPLY BY LSB HERE
       tempCluster.setEcalEnergy(    sumCrystals                );
       tempCluster.setHcalEnergy(    HCALEt                     );
 
-      tempCluster.setTowerPhi(      (unsigned)(tPhi*5+maxCrystalPhi)      );
+      tempCluster.setTowerPhi(      (unsigned) (tPhi*5+maxCrystalPhi)     );
       tempCluster.setTowerEta(      (unsigned) abs(tEta*5+maxCrystalEta)  );
       tempCluster.setTowerEtaSide(  (unsigned) etaSide                    );
+      tempCluster.setEoH( EoH );
+      tempCluster.setHoE( HoE );
 
+      if(debug)
+	if(pt>10){
+	  std::cout<<tempCluster<<std::endl;
+	  for(unsigned int cPhi = 0; cPhi < 5 ; cPhi++ ){
+	    for(unsigned int cEta = 0; cEta < 5; cEta++){
+	      std::cout<<" "<<std::setw(8)<< std::setprecision(5)<<crystals[cEta][cPhi];
+	    }
+	    std::cout<<std::endl;
+	  }
+	}
+      if(debug)
+	if(nPrints < 3 && tempCluster.et() == 0){
+	  std::cout<<"-------------- printing a 0 cluster --------------"<<std::endl;
+	  std::cout<<tempCluster<<std::endl;
+	  nPrints++;
+	}
       //DEBUG statement
       //std::cout<<"eta "<< central_eta <<" tempCluster.p4().Eta() "<<tempCluster.p4().Eta()<<std::endl;
 
@@ -180,9 +214,12 @@ void ClusterProducer::beginRun(const edm::Run& run, const edm::EventSetup& iSetu
 
 void ClusterProducer::getEcalCrystals(edm::Handle<EcalEBTrigPrimDigiCollection> ecalTPGs, vector<ecalCrystal_t> &ecalCrystals)
 {
-  
+  if(debug)
+    std::cout<<"-------------- ECAL Crystals --------------"<<std::endl;
+    
   for(auto& tpg : *ecalTPGs.product())
     {
+
       if(tpg.encodedEt() > 0) 
 	{
 
@@ -191,7 +228,7 @@ void ClusterProducer::getEcalCrystals(edm::Handle<EcalEBTrigPrimDigiCollection> 
 
 	  float et = tpg.encodedEt()/8.;
 
-	  if(et<0.5) continue;
+	  if(et<0.1) continue;// LSB is 0.1
 	  //float energy = et / sin(position.theta());
 	  float eta = cell->getPosition().eta();
 	  float phi = cell->getPosition().phi();
@@ -200,12 +237,12 @@ void ClusterProducer::getEcalCrystals(edm::Handle<EcalEBTrigPrimDigiCollection> 
 	  float iPhi = detID.iphi();
 
 	  //DEBUG STATMENT
-	  /*
-	  if(et>0.5){
-	    std::cout<<"ET "<<et<<std::endl;
-	    std::cout<<"eta  "<< eta<< " phi  "<< phi<<std::endl;
-	    std::cout<<"iEta"<<iEta<<" iphi "<<iPhi<<std::endl;
-	    }*/
+	  if(debug)
+	    if(et>1){
+	      std::cout<<"ET "<<et<<std::endl;
+	      std::cout<<" eta  "<< eta<< " phi  "<< phi<<std::endl;
+	      std::cout<<" iEta"<<iEta<<" iphi "<<iPhi<<std::endl;
+	    }
 	  ecalCrystal_t tempCrystal;
 	  tempCrystal.p4.SetPtEtaPhiE(et, eta, phi,et);
 	  tempCrystal.iEta = iEta;
@@ -245,6 +282,9 @@ void ClusterProducer::getHcalTPGs( edm::Handle<edm::SortedCollection<HcalTrigger
 				   edm::ESHandle<L1CaloHcalScale> &hcalScale, 
 				   vector<TLorentzVector> &allHcalTPGs){
 
+  if(debug)
+    std::cout<<"-------------- HCAL TPGs --------------"<<std::endl;
+
   for (size_t i = 0; i < hcaltpgCollection->size(); ++i) {
 
     HcalTriggerPrimitiveDigi tpg = (*hcaltpgCollection)[i];
@@ -258,8 +298,9 @@ void ClusterProducer::getHcalTPGs( edm::Handle<edm::SortedCollection<HcalTrigger
     short zside   = tpg.id().zside();
     double et     = hcalScale->et(tpg.SOI_compressedEt(), absieta, zside); 
     //DEBUG STATEMENT
-    //if(et>0)
-    //std::cout<<"HCAL ET "<<et<<std::endl;
+    if(debug)
+      if(et>0)
+	std::cout<<"HCAL ET "<<et<<std::endl;
 
     if(ieta<0){
       std::cout<<"sorry, ieta less than 1 :("<<std::endl;
@@ -278,7 +319,7 @@ void ClusterProducer::getHcalTPGs( edm::Handle<edm::SortedCollection<HcalTrigger
   
 }
 
-void ClusterProducer::clusterAlgoMax(unsigned int crystals[5][5], unsigned int &maxCrystalEta, unsigned int &maxCrystalPhi){
+void ClusterProducer::clusterAlgoMax(float crystals[5][5], unsigned int &maxCrystalEta, unsigned int &maxCrystalPhi){
   unsigned int maxCrystalEt = 0;
   maxCrystalEta = 2;
   maxCrystalPhi = 2;
@@ -295,7 +336,7 @@ void ClusterProducer::clusterAlgoMax(unsigned int crystals[5][5], unsigned int &
   }
 }
 
-void ClusterProducer::clusterAlgoMaxInternet(unsigned int crystals[25], unsigned int &maxCrystalEta, unsigned int &maxCrystalPhi){
+void ClusterProducer::clusterAlgoMaxInternet(float crystals[25], unsigned int &maxCrystalEta, unsigned int &maxCrystalPhi){
 
   unsigned int maxCrystalEt = 0;
   unsigned int maxCrystalIndex = 0;  // 2*5 + 2 
