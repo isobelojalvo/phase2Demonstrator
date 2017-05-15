@@ -83,19 +83,20 @@ void PFObjectProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     for(auto l1Track : l1Tracks){
       L1PFObject newL1PFObject;
 
-      //note: implement me
-      newL1PFObject.L1Track() = l1Track;
       
       //change me to ieta iphi
       if((l1Track.getMomentum().eta() - cluster.p4().Eta() < 0.087) && (l1Track.getMomentum().phi() - cluster.p4().Phi() < 0.087)){
 
+	//note: implement me
+	newL1PFObject.setTrackRef(l1Track);
+
 	// Take the cluster, use h/e to determine if hadron or electron/pi0 
 	// note: implement me
-	newL1PFObject.hcalEnergy() = cluster.hcalEnergy();
-	newL1PFObject.ecalEnergy() = cluster.ecalEnergy();
-	newL1PFObject.caloEnergy() = cluster.caloEnergy();
-	newL1PFObject.HoE() = cluster.HoE();
-	newL1PFObject.EoH() = cluster.EoH();
+	newL1PFObject.setHcalEnergy(cluster.hcalEnergy());
+	newL1PFObject.setHcalEnergy(cluster.ecalEnergy());
+	newL1PFObject.setCaloEnergy(cluster.caloEnergy());
+	newL1PFObject.setHoE(cluster.HoE());
+	newL1PFObject.setEoH(cluster.EoH());
 
 	// Electron ID
 	if(cluster.EoH() > input_EoH_cut_){
