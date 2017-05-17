@@ -74,7 +74,7 @@ void ClusterProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   // For each ieta/iphi produce a grid of 5x5 (make configurable to 3x5?)
   // The collection is produced in the ordered format as seen above. 
   // Loop over all towers in eta
-  for(int tEta = -20; tEta < 20; tEta++){
+  for(int tEta = -20; tEta < 21; tEta++){
 
     //skip tower eta == 0
     if(tEta == 0)
@@ -179,7 +179,7 @@ void ClusterProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       tempCluster.setHoE( HoE );
 
       if(debug)
-	if(pt>10){
+	if(pt>2){
 	  std::cout<<tempCluster<<std::endl;
 	  for(unsigned int cPhi = 0; cPhi < 5 ; cPhi++ ){
 	    for(unsigned int cEta = 0; cEta < 5; cEta++){

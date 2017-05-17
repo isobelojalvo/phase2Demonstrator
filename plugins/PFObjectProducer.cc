@@ -8,7 +8,19 @@
  Description: Level 1 PFObjects for the Demonstrator
 
  Implementation:
-     [Notes on implementation]
+
+   Caloclusters are filled using following format
+   *                           2880 TOTAL CLUSTERS 
+   *       iEta
+   *       |-20                    -1 || 1                        20|
+   *       |-------------------------------------------------------- 
+   * iPhi 1|   0   72  144            ||1440                    2808
+   *      2|   1   73  145            ||1441
+   *      .|   .    .    .            || 
+   *      .|   .    .    .            ||
+   *      .|   .    .    .            ||                        2878
+   *     72|  71  143  215            ||                        2879
+   
 */
 
 
@@ -66,84 +78,89 @@ void PFObjectProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 
   if(debug){
     std::cout<<"PFObject Producer "<<l1CaloClusters->size()<<" caloclusters found"<<std::endl;}
-
+  
+  // Counters for Debugging the Event
   int nElectrons = 0;
   int nPhotons = 0;
   int nChargedHadrons = 0;
   int nNeutralHadrons = 0;
-  
+ 
   for(unsigned int i = 0; i < l1CaloClusters->size(); i++){
     L1CaloCluster cluster = l1CaloClusters->at(i);
-    L1CaloCluster newNeutralCluster;
-
-    newNeutralCluster.setEt( cluster.et() );
-    newNeutralCluster.setTowerEta( cluster.towerEta() );
-    newNeutralCluster.setTowerPhi( cluster.towerPhi() );
-
-    for(auto l1Track : l1Tracks){
-      L1PFObject newL1PFObject;
-
-      
-      //change me to ieta iphi
-      if((l1Track.getMomentum().eta() - cluster.p4().Eta() < 0.087) && (l1Track.getMomentum().phi() - cluster.p4().Phi() < 0.087)){
-
-	//note: implement me
-	newL1PFObject.setTrackRef(l1Track);
-
-	// Take the cluster, use h/e to determine if hadron or electron/pi0 
-	// note: implement me
-	newL1PFObject.setHcalEnergy(cluster.hcalEnergy());
-	newL1PFObject.setHcalEnergy(cluster.ecalEnergy());
-	newL1PFObject.setCaloEnergy(cluster.caloEnergy());
-	newL1PFObject.setHoE(cluster.HoE());
-	newL1PFObject.setEoH(cluster.EoH());
-
-	// Electron ID
-	if(cluster.EoH() > input_EoH_cut_){
-	  newL1PFObject.setIsElectron(true);
-	  nElectrons++;
-	}
-	if(cluster.HoE() > input_HoE_cut_){
-	  newL1PFObject.setIsChargedHadron(true);
-	  nChargedHadrons++;
-	}
-
-	/// Subtract track pt to create Neutral Photons and Hadrons
-	if(l1Track.getMomentum().perp() < cluster.et()){
-	  newNeutralCluster.setEt(cluster.et() - l1Track.getMomentum().perp());
-
-	  if(cluster.EoH() > input_EoH_cut_){
-	    newNeutralCluster.setIsPhoton(true);
-	    nPhotons++;
-	  }
-	  else{
-	    newNeutralCluster.setIsNeutralHadron(true);
-	    nNeutralHadrons++;
-	  }
-	}
-
-	else if(l1Track.getMomentum().perp() > cluster.et()){
-	  
-	  if(debug){
-	    //note implement the tower eta for l1Track and cluster p4 (if not already there)
-	    std::cout<<"---------------------------------"<<std::endl;
-	    std::cout<<"The Track Momentum is greater than the Cluster Momentum"<<std::endl;
-	    std::cout<<"Cluster iEta: "<< cluster.towerEta() << " iPhi: "<< cluster.towerPhi() <<" Reco eta: "<< cluster.p4().Eta() <<" Reco Phi "<< cluster.p4().Phi()<<std::endl;
-	    std::cout<<"Track Reco eta: "<< l1Track.getMomentum().eta() <<" Reco Phi "<< l1Track.getMomentum().phi()<<std::endl; //   iEta: "<< l1Track.towerEta()   << " iPhi: "<< l1Track.towerPhi()   
-	      
-	    std::cout<<"---------------------------------"<<std::endl;
-	  }
-	}
-
-	if(debug)
-	  std::cout<<newL1PFObject<<std::endl;
-
-	newL1PFObjects->push_back(newL1PFObject);
-      }
-    }
-
+    L1CaloCluster newNeutralCluster = cluster;
     newL1NeutralClusters->push_back(newNeutralCluster);
   }
+
+  for(auto l1Track : l1Tracks){
+    L1PFObject newL1PFObject;
+    float trackEta = l1Track.getMomentum().eta();
+    float trackPhi = l1Track.getMomentum().phi();
+
+    if(fabs(trackEta)>1.74)continue;
+
+    uint32_t index = findTheIndexFromReco(trackEta, trackPhi);
+    if(index > newL1NeutralClusters->size()){
+      std::cout<<"-----------------------------------FATAL ERROR PFOBjectProducer-----------------------------------"<<std::endl;
+      std::cout<<"Error the calculated index is greater than the size of the clusters. I am skipping this track"<<std::endl;
+      std::cout<<" track Eta = "<<trackEta<<" Phi = "<<trackPhi<<std::endl;
+      continue;
+    }
+
+    //find the cluster that matches
+    L1CaloCluster cluster =  newL1NeutralClusters->at(index);
+    cluster.setEt(newL1NeutralClusters->at(index).et());
+
+    //note: implement me
+    newL1PFObject.setTrackRef(l1Track);
+    newL1PFObject.setPtEtaPhiE(l1Track.getMomentum().perp(),trackEta, trackPhi,l1Track.getMomentum().perp());
+
+    // Take the cluster, use h/e to determine if hadron or electron/pi0 
+    newL1PFObject.setHcalEnergy(cluster.hcalEnergy());
+    newL1PFObject.setEcalEnergy(cluster.ecalEnergy());
+    newL1PFObject.setCaloEnergy(cluster.caloEnergy());
+    newL1PFObject.setHoE(cluster.HoE());
+    newL1PFObject.setEoH(cluster.EoH());
+    
+    // Electron ID
+    if(cluster.EoH() > input_EoH_cut_){
+      newL1PFObject.setIsElectron(true);
+      nElectrons++;
+    }
+    if(cluster.HoE() > input_HoE_cut_){
+      newL1PFObject.setIsChargedHadron(true);
+      nChargedHadrons++;
+    }
+    
+    /// Subtract track pt to create Neutral Photons and Hadrons
+    if(l1Track.getMomentum().perp() < cluster.et()){
+      newL1NeutralClusters->at(index).setEt(cluster.et() - l1Track.getMomentum().perp());
+      
+      if(cluster.EoH() > input_EoH_cut_){
+	newL1NeutralClusters->at(index).setIsPhoton(true);
+	nPhotons++;
+      }
+      else{
+	newL1NeutralClusters->at(index).setIsNeutralHadron(true);
+	nNeutralHadrons++;
+      }
+    }
+    
+    //else if(l1Track.getMomentum().perp() > cluster.et()){
+      
+      if(debug){
+	//note implement the tower eta for l1Track and cluster p4 (if not already there)
+	std::cout<<"---------------------------------"<<std::endl;
+	//std::cout<<"The Track Momentum is greater than the Cluster Momentum"<<std::endl;
+	std::cout<<"Cluster "<< l1CaloClusters->at(index) <<std::endl;
+	std::cout<<"PFObject "<< newL1PFObject<<std::endl;
+	std::cout<<"---------------------------------"<<std::endl;
+	//}
+	}
+    
+    newL1PFObjects->push_back(newL1PFObject);
+  }
+
+
   std::cout<<"------------ Event Summary From PF Object Producer ------------"<<std::endl;
   std::cout<<"nElectrons:      "<<nElectrons<<std::endl;
   std::cout<<"nPhotons:        "<<nPhotons<<std::endl;
@@ -157,6 +174,34 @@ void PFObjectProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 
 }
 
+uint32_t PFObjectProducer::findTheIndexFromReco( float eta, float phi){
+  //uint32_t PFObjectProducer::findTheIndexFromReco(float trackET, int charge, float eta, float phi){
+ 
+  uint32_t index;
+  triggerGeometryTools tool;
+  uint32_t cEta = (tool.getCrystalIEta(eta));
+  uint32_t cPhi = (tool.getCrystalIPhi(phi));
+  std::cout<<"crystal iEta "<<cEta <<" iPhi "<<cPhi<<" index: "<<index<<std::endl;
+  int iEta = tool.convertGenEta(eta);
+  int iPhi = tool.convertGenPhi(phi);
+
+  if(eta < 0)
+    index = (uint32_t) ((20 - iEta)*72 + iPhi - 2);
+  else
+    index = (uint32_t) (( iEta )*72 + iPhi) ;
+
+  /*
+  if(trackET<15 && charge == -1){
+  if(eta < 0)
+    index = (uint32_t) ((20 - iEta)*72 + iPhi - 2);
+  else
+    index = (uint32_t) (( iEta )*72 + iPhi) ;
+  }
+  */
+  //std::cout<<"tower iEta "<<iEta <<" iPhi "<<iPhi<<" index: "<<index<<std::endl;
+  //iEta 0 iPhi 57 index: 7257
+  return index;
+}
 
 
 /////////////

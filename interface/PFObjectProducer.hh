@@ -102,7 +102,7 @@ public:
 
 private:
 
-
+  uint32_t findTheIndexFromReco(float eta, float phi);
 
   /// ///////////////// ///
   /// MANDATORY METHODS ///

@@ -32,15 +32,88 @@ L1PFTauProducer::L1PFTauProducer(const edm::ParameterSet& cfg) :
 void L1PFTauProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   std::unique_ptr<L1PFTauCollection> newL1PFTauCollection(new L1PFTauCollection);
-  //find 1 prong taus using charged hadrons
+
+  using namespace edm;
+  edm::Handle< std::vector<L1CaloCluster> > l1NeutralClusters;
+  iEvent.getByToken( L1NeutralToken_, l1NeutralClusters);
 
 
-  //find 3 prong taus using charged hadrons
+  edm::Handle< std::vector<L1CaloCluster> > l1PFChargedCandidates;
+  iEvent.getByToken( L1PFToken_, l1PFChargedCandidates);
+
+  L1PFTau tauCands[6]; //6 tau cands possible, each with as many as 3 signal candidates
+
+  int nTauCands = 0;
+
+  //Find taus using charged hadrons
+  for(int iCand = 0; iCand < l1PFChargedCandidates->size(); iCand++){
+
+    //Find 1 Prong Candidates
+    if(l1PFChargedCandidates->at(iCand).isChargedHadron() == true && l1PFChargedCandidates->at(iCand).p4().Pt() > 6){
+      L1PFObject tau_cand[3];
+
+      int n_prongs_found = 0;
+      float isolationSum = 0;
+
+      for(int jCand = 0; jCand < l1PFChargedCandidates->size(); jCand++){
+
+	if(jCand <= iCand)
+	  continue;
+
+	if(Delta_R(l1PFChargedCandidates->at(jCand).p4().Eta(), l1PFChargedCandidates->at(jCand).p4().Phi(), 
+		   l1PFChargedCandidates->at(iCand).p4().Eta(), l1PFChargedCandidates->at(iCand).p4().Phi(), 
+		   three_prong_delta_r_)){
+
+	  if(n_prongs_found<3){
+	    tau_cand[2] = l1PFChargedCandidates->at(jCand);
+	  }
+
+	  if(n_prongs_found<2){
+	    tau_cand[1] = l1PFChargedCandidates->at(jCand);
+	  }
+
+	}// greater than three_prong_delta_r
+	else if(Delta_R(l1PFChargedCandidates->at(jCand).p4().Eta(), l1PFChargedCandidates->at(jCand).p4().Phi(), 
+			l1PFChargedCandidates->at(iCand).p4().Eta(), l1PFChargedCandidates->at(iCand).p4().Phi(), 
+			isolation_delta_r_)){
+	  // Sum the isolation here
+	  isolationSum += l1PFChargedCandidates->at(iCand).p4().Pt();
+	}// Less than isolation_delta_r
+      }
+
+      // Create the 1 Prong Objects
+      if(n_prongs_found<3){
+	if(l1PFChargedCandidates->at(iCand).p4().Pt() > 15){
+	  if(n_prongs_found>1){
+	    //Add second prong to Isolation Cone
+	    isolationSum += tau_cand[2].P4().Pt();	    
+	  }
+	  L1PFTau tempL1PFTau;
+	  tempL1PFTau.setPtEtaPhiE(l1PFChargedCandidates->at(iCand).p4().Pt(), 
+				   l1PFChargedCandidates->at(iCand).p4().Eta(), 
+				   l1PFChargedCandidates->at(iCand).p4().Phi(), 
+				   l1PFChargedCandidates->at(iCand).p4().Pt());
+
+	  tempL1PFTau.setTauType(0);
+	  tempL1PFTau.setRawIso(isolationSum);
+	  tempL1PFTau.setRelIso(isolationSum/pt);
+
+	  tauCands[nTauCands] = tempL1PFTau;
+	}
+
+      }
+
+    }
+  }
+
+  // For each Tau Candidate Create the Strip by grabbing the index of the nearby neutrals
+
 
 
   //find pi0's using electrons/gamma
+  //stitch the strips by combining electron and gamma candidates
 
-  //find 1 prong pi0's by combining the 1 prong + pi0's
+  //find 1 prong pi0's by combining the 1 prong and the pi0's
   
   
 }
