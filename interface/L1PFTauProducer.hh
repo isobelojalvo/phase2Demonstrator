@@ -62,6 +62,8 @@ public:
 
 private:
 
+  bool Delta_R( float eta1, float eta2, float phi1, float phi2, float max_dr);
+
   /// ///////////////// ///
   /// MANDATORY METHODS ///
   virtual void beginRun( const edm::Run& run, const edm::EventSetup& iSetup );
@@ -72,6 +74,8 @@ private:
   bool debug;
   int input_EoH_cut_;
   int input_HoE_cut_;
+  float three_prong_delta_r_;
+  float isolation_delta_r_;
   edm::InputTag L1TrackInputTag;
   edm::EDGetTokenT< L1CaloClusterCollection > L1ClustersToken_;
   edm::EDGetTokenT< std::vector< TTTrack< Ref_Phase2TrackerDigi_ > > > ttTrackToken_;

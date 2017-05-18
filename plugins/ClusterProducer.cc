@@ -194,12 +194,18 @@ void ClusterProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  std::cout<<tempCluster<<std::endl;
 	  nPrints++;
 	}
-      //DEBUG statement
-      //std::cout<<"eta "<< central_eta <<" tempCluster.p4().Eta() "<<tempCluster.p4().Eta()<<std::endl;
-
       newClusters->push_back(tempCluster);
     }
   }
+
+  //DEBUG statement
+  //std::cout<<"eta "<< central_eta <<" tempCluster.p4().Eta() "<<tempCluster.p4().Eta()<<std::endl;
+  //std::cout<<"copying the cluster "<<std::endl;
+  //std::cout<<"------------- cluster first -------------"<<std::endl;
+  //std::cout<< newClusters->at(0) <<std::endl;
+  //std::cout<<"------------- cluster second -------------"<<std::endl;
+  //L1CaloCluster tempCluster = newClusters->at(0);
+  //std::cout<<tempCluster<<std::endl;
 
   //push out the collection
   iEvent.put( std::move(newClusters) , "L1Phase2CaloClusters" );
