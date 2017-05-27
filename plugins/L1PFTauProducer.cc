@@ -235,7 +235,13 @@ void L1PFTauProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   //now fill the new collection
   for(unsigned int i = 0; i < 12; i++){
     newL1PFTauCollection->push_back(l1PFTau[i]);
+    if(debug){
+      if(l1PFTau[i].et()>0){
+	std::cout<<l1PFTau[i]<<std::endl;
+      }
+    }
   }
+
 
   iEvent.put( std::move(newL1PFTauCollection) , "L1PFTaus" );
 
