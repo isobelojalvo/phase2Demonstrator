@@ -33,11 +33,6 @@
 #include "DataFormats/HcalDigi/interface/HcalTriggerPrimitiveDigi.h"
 
 //Vertex and gen particle
-//#include "DataFormats/VertexReco/interface/VertexFwd.h"
-//#include "DataFormats/VertexReco/interface/Vertex.h"
-//#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
-//#include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
-
 #include "Geometry/CaloEventSetup/interface/CaloTopologyRecord.h"
 #include "Geometry/Records/interface/CaloGeometryRecord.h"
 #include "Geometry/CaloGeometry/interface/CaloSubdetectorGeometry.h"
@@ -45,11 +40,6 @@
 #include "Geometry/EcalAlgo/interface/EcalBarrelGeometry.h"
 #include "Geometry/EcalAlgo/interface/EcalEndcapGeometry.h"
 #include "Geometry/CaloGeometry/interface/CaloCellGeometry.h"
-
-//ECALREC Hit Headers
-//#include "DataFormats/EcalRecHit/interface/EcalRecHit.h"
-//#include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
-//#include "FastSimulation/CaloGeometryTools/interface/CaloGeometryHelper.h"
 
 //Geometry
 #include "Geometry/CaloTopology/interface/CaloTopology.h"
@@ -59,11 +49,8 @@
 #include "Geometry/HcalTowerAlgo/interface/HcalTrigTowerGeometry.h"
 #include "Geometry/HcalTowerAlgo/interface/HcalGeometry.h"
 
-//#include "DataFormats/HcalDetId/interface/HcalSubdetector.h"
-//#include "DataFormats/HcalDetId/interface/HcalDetId.h"
-//#include "DataFormats/HcalRecHit/interface/HcalRecHitCollections.h"
-//#include "DataFormats/HcalRecHit/interface/HcalSourcePositionData.h"
-
+#include <bitset>
+using std::bitset;
 
 #include "DataFormats/L1CaloTrigger/interface/L1CaloCollections.h"
 #include "L1Trigger/phase2Demonstrator/interface/triggerGeometryTools.hh"
@@ -104,6 +91,13 @@ private:
     float iPhi;
     EBDetId id;
   } ;
+
+  struct hcalTPG_t{
+    TLorentzVector p4;
+    int iEta;
+    int iPhi;
+    HcalTrigTowerDetId id;
+  } ;
   
   void getEcalCrystals(edm::Handle<EcalEBTrigPrimDigiCollection> ecaltpgs, 
 		       vector<ecalCrystal_t> &ecalCrystals);
@@ -114,7 +108,7 @@ private:
 
   void getHcalTPGs( edm::Handle<edm::SortedCollection<HcalTriggerPrimitiveDigi> > hcaltpgCollection, 
 		    edm::ESHandle<L1CaloHcalScale> &hcalScale, 
-		    vector<TLorentzVector> &allHcalTPGs);
+		    vector<hcalTPG_t> &allHcalTPGs);
 
   void clusterAlgoMaxInternet(float crystals[25], 
 			      unsigned int &maxCrystalEta, 
@@ -123,6 +117,8 @@ private:
   void clusterAlgoMax(float crystals[5][5], 
 		      unsigned int &maxCrystalEta, 
 		      unsigned int &maxCrystalPhi);
+
+  bool pi0BitSet(bitset<5> etaPattern, bitset<5> phiPattern);
 
   int TPGEtaRange(int ieta){
     int iEta = 0;

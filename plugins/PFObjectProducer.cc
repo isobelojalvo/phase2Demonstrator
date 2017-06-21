@@ -135,11 +135,17 @@ void PFObjectProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     if(l1Track.getMomentum().perp() < cluster.et()){
       newL1NeutralClusters->at(index).setEt(cluster.et() - l1Track.getMomentum().perp());
       
+      //Fix me
       if(cluster.EoH() > input_EoH_cut_){
 	newL1NeutralClusters->at(index).setIsPhoton(true);
+	if(debug)
+	  std::cout<<"Found Photon Deposit"<<std::endl;
+
 	nPhotons++;
       }
       else{
+	if(debug)
+	  std::cout<<"Found Hadron Deposit"<<std::endl;
 	newL1NeutralClusters->at(index).setIsNeutralHadron(true);
 	nNeutralHadrons++;
       }

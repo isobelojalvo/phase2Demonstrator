@@ -63,7 +63,7 @@ public:
 private:
 
   bool Delta_R( float eta1, float eta2, float phi1, float phi2, float max_dr);
-
+  uint32_t findTheIndexFromReco( float eta, float phi, int iEta_add = 0, int iPhi_add = 0);
   /// ///////////////// ///
   /// MANDATORY METHODS ///
   virtual void beginRun( const edm::Run& run, const edm::EventSetup& iSetup );
