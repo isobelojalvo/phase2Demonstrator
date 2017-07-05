@@ -62,6 +62,7 @@ process.out = cms.OutputModule( "PoolOutputModule",
                                 fastCloning = cms.untracked.bool( False ),
                                 outputCommands = cms.untracked.vstring(#'drop *',
                                                                        'keep *_*_L1Phase2CaloClusters_*', 
+                                                                       'keep *_*_L1PFObjects_*', 
                                                                        )
 )
 process.FEVToutput_step = cms.EndPath(process.out)

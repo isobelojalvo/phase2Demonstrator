@@ -82,7 +82,8 @@ void ClusterProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       //continue;
 
     //loop over all towers in phi
-    for(int tPhi = 0; tPhi < 73; tPhi++){
+    //check me, was 73, putting 72
+    for(int tPhi = 0; tPhi < 72; tPhi++){
 
       //build cluster object
       //tRecoEta is from -1.74 to 1.74 add 0.0435 to get the center of the bin
@@ -251,9 +252,13 @@ void ClusterProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       tempCluster.setEcalEnergy(    sumCrystals                );
       tempCluster.setHcalEnergy(    HCALEt                     );
 
-      tempCluster.setTowerPhi(      (unsigned) (tPhi*5+maxCrystalPhi)     );
-      tempCluster.setTowerEta(      (unsigned) abs(tEta*5+maxCrystalEta)  );
-      tempCluster.setTowerEtaSide(  (unsigned) etaSide                    );
+      tempCluster.setTowerPhi(      (unsigned) tPhi       );
+      tempCluster.setTowerEta(      (unsigned) abs(tEta)  );
+      tempCluster.setTowerEtaSide(  (unsigned) etaSide    );
+
+      tempCluster.setCrystalPhi(      (unsigned) (tPhi*5+maxCrystalPhi)     );
+      tempCluster.setCrystalEta(      (unsigned) abs(tEta*5+maxCrystalEta)  );
+
       tempCluster.setEoH( EoH );
       tempCluster.setHoE( HoE );
       tempCluster.setIsPi0( pi0Like );
@@ -318,6 +323,46 @@ void ClusterProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       newClusters->push_back(tempCluster);
     }
   }
+  //now prune the new clusters
+
+  //loop through all clusters
+  //for(auto centralCluster:newClusters){
+  for(int i = 0; i < newClusters->size(); i++ ){
+  //get upper left neighbor
+    int indexNW = getNeighbor(newClusters->at(i), -1, 1);
+    int indexW  = getNeighbor(newClusters->at(i), -1, 0);
+    int indexSW = getNeighbor(newClusters->at(i), -1,-1);
+    int indexS  = getNeighbor(newClusters->at(i),  0,-1);
+    int indexSE = getNeighbor(newClusters->at(i),  1,-1);
+    int indexE  = getNeighbor(newClusters->at(i),  1, 0);
+    int indexNE = getNeighbor(newClusters->at(i),  1, 1);
+    int indexN  = getNeighbor(newClusters->at(i),  0, 1);
+
+    if(indexNW >= -20 && indexNW < 20)
+      checkAndMergeCluster(newClusters->at(i), newClusters->at(indexNW));
+
+    if(indexW >= -20  && indexW  < 20)
+      checkAndMergeCluster(newClusters->at(i), newClusters->at(indexW) );
+
+    if(indexSW >= -20 && indexSW < 20)
+      checkAndMergeCluster(newClusters->at(i), newClusters->at(indexSW));
+
+    if(indexS >= -20  && indexS < 20)
+      checkAndMergeCluster(newClusters->at(i), newClusters->at(indexS) );
+
+    if(indexSE >= -20 && indexSE < 20)
+      checkAndMergeCluster(newClusters->at(i), newClusters->at(indexSE));
+
+    if(indexE >= -20  && indexE  < 20)
+      checkAndMergeCluster(newClusters->at(i), newClusters->at(indexE) );
+
+    if(indexNE >= -20 && indexNE < 20)
+      checkAndMergeCluster(newClusters->at(i), newClusters->at(indexNE));
+
+    if(indexN >= -20  && indexN  < 20)    
+      checkAndMergeCluster(newClusters->at(i), newClusters->at(indexN) );
+
+  }
 
   if(debug)
     std::cout<<"NClusters = "<<newClusters->size()<<std::endl;
@@ -332,6 +377,57 @@ ClusterProducer::~ClusterProducer(){}
 void ClusterProducer::endRun(const edm::Run& run, const edm::EventSetup& iSetup){}
 
 void ClusterProducer::beginRun(const edm::Run& run, const edm::EventSetup& iSetup ){}
+
+///fix me to make generic
+int ClusterProducer::getNeighbor(L1CaloCluster centralCluster, int dEta, int dPhi){
+  int maxEta = 20;
+  int minEta = -20;
+
+  int towerEta = centralCluster.towerEta();
+  int towerPhi = centralCluster.towerPhi();
+  int index = -99;
+
+  if( (towerEta + dEta) > minEta && (towerEta + maxEta) < maxEta ){
+    towerEta = towerEta + dEta;
+  }
+  else 
+    return -99;
+
+  if(towerPhi > -1 && towerPhi < 72){
+    towerPhi = towerPhi + dPhi;
+  }
+
+  if(towerPhi == -1){
+    towerPhi = 71;
+  }
+
+  if(towerPhi == 72){
+    towerPhi = 0;
+  }
+
+  triggerGeometryTools trigTools;
+
+  return ( trigTools.getIndex(towerEta,towerPhi));
+}
+
+bool ClusterProducer::checkAndMergeCluster(L1CaloCluster &centralCluster, L1CaloCluster &neigborCluster){
+  if(abs(centralCluster.crystalEta() - neigborCluster.crystalEta()) < 2 && 
+     abs(centralCluster.crystalPhi() - neigborCluster.crystalPhi()) < 2 && 
+       centralCluster.p4().Pt() > neigborCluster.p4().Pt() ){
+      //if passes the criteria then merge the cluster
+      int cluster1Et = centralCluster.p4().Pt();
+      int cluster2Et = neigborCluster.p4().Pt();
+
+      centralCluster.setEt((float)(cluster1Et+cluster1Et));
+      neigborCluster.setEt((float)0);
+
+      std::cout<<"Merging Cluster, old Cluster ET = "<<cluster1Et<<" new Cluster ET = "<<centralCluster.p4().Pt()<<std::endl;
+      return true;
+    }
+    return false;
+
+}
+
 
 void ClusterProducer::getEcalCrystals(edm::Handle<EcalEBTrigPrimDigiCollection> ecalTPGs, vector<ecalCrystal_t> &ecalCrystals)
 {

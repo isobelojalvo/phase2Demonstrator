@@ -39,6 +39,9 @@ public:
 
   uint32_t getCrystalIEta(float recoEta);  
   uint32_t getCrystalIPhi(float recoPhi);
+
+  uint32_t getIndex(int towerEta, int towerPhi);
+
   ~triggerGeometryTools(){}
 
 protected:

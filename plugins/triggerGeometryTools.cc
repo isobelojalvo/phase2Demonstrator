@@ -1,4 +1,4 @@
-#include "L1Trigger/phase2L1TPatterns/interface/triggerGeometryTools.hh"
+#include "L1Trigger/phase2Demonstrator/interface/triggerGeometryTools.hh"
 
 triggerGeometryTools::triggerGeometryTools(){};
 
@@ -192,6 +192,22 @@ uint32_t triggerGeometryTools::getCrystalIPhi(float recoPhi){
   std::cout<<"ERROR out of bounds phi "<<recoPhi<<std::endl;
   
   return -999;
+
+}
+
+
+uint32_t triggerGeometryTools::getIndex(int towerEta, int towerPhi){
+  uint32_t index = 0;
+
+  if(towerEta<0){
+    index = abs(towerEta+20)*72 + towerPhi;
+  }
+  
+  if(towerEta>0){
+    index = abs(towerEta+20)*72 + towerPhi;
+  }
+  
+  return index;
 
 }
 //DEFINE_FWK_MODULE(triggerGeometryTools);

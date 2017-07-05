@@ -120,6 +120,9 @@ private:
 
   bool pi0BitSet(bitset<5> etaPattern, bitset<5> phiPattern);
 
+  int getNeighbor(L1CaloCluster centralCluster, int dEta, int dPhi);
+  bool checkAndMergeCluster(L1CaloCluster &centralCluster, L1CaloCluster &newClusters);
+
   int TPGEtaRange(int ieta){
     int iEta = 0;
     // So here, -28 becomes 0.  -1 be comes 27.  +1 becomes 28. +28 becomes 55.

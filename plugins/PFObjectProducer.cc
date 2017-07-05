@@ -84,6 +84,7 @@ void PFObjectProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
   int nPhotons = 0;
   int nChargedHadrons = 0;
   int nNeutralHadrons = 0;
+  int nOthers = 0;
  
   for(unsigned int i = 0; i < l1CaloClusters->size(); i++){
     L1CaloCluster cluster = l1CaloClusters->at(i);
@@ -124,12 +125,22 @@ void PFObjectProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     // Electron ID
     if(cluster.EoH() > input_EoH_cut_){
       newL1PFObject.setIsElectron(true);
+      newL1PFObject.setIsChargedHadron(false);
       nElectrons++;
-    }
-    if(cluster.HoE() > input_HoE_cut_){
+    } else if(cluster.HoE() > input_HoE_cut_){
+      newL1PFObject.setIsElectron(false);
       newL1PFObject.setIsChargedHadron(true);
       nChargedHadrons++;
     }
+    else// neither electron or charged hadron... a muon?
+      {
+      newL1PFObject.setIsElectron(false);
+      newL1PFObject.setIsChargedHadron(false);
+      nOthers++;
+      }
+
+    //check if the neighbor is very close by
+
     
     /// Subtract track pt to create Neutral Photons and Hadrons
     if(l1Track.getMomentum().perp() < cluster.et()){
@@ -172,7 +183,7 @@ void PFObjectProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
   std::cout<<"nPhotons:        "<<nPhotons<<std::endl;
   std::cout<<"nChargedHadrons: "<<nChargedHadrons<<std::endl;
   std::cout<<"nNeutralHadrons: "<<nNeutralHadrons<<std::endl;
-
+  std::cout<<"nOthers:         "<<nOthers<<std::endl;
 
 
   iEvent.put( std::move(newL1PFObjects) ,       "L1PFObjects" );
