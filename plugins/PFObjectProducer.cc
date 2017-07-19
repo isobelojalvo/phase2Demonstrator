@@ -29,8 +29,8 @@
 
 PFObjectProducer::PFObjectProducer(const edm::ParameterSet& cfg) :
   debug(cfg.getUntrackedParameter<bool>("debug", false)),
-  input_EoH_cut_(cfg.getUntrackedParameter<int>("EoH_cut", 2)), // LSB is 0.1 so 2 corresonds to 0.2
-  input_HoE_cut_(cfg.getUntrackedParameter<int>("HoE_cut", 8)), // LSB is 0.1 so 8 corresonds to 0.8
+  input_EoH_cut_(cfg.getUntrackedParameter<int>("EoH_cut", 50)), // LSB is 0.1 so 2 corresonds to 0.2 start with 20 -> 85% of energy in ECAL 
+  input_HoE_cut_(cfg.getUntrackedParameter<int>("HoE_cut", 2)), // LSB is 0.1 so 8 corresonds to 0.8
   L1ClustersToken_(consumes< L1CaloClusterCollection >(cfg.getParameter<edm::InputTag>("L1Clusters")))
 {
   L1TrackInputTag = cfg.getParameter<edm::InputTag>("L1TrackInputTag");
@@ -99,7 +99,7 @@ void PFObjectProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 
     if(fabs(trackEta)>1.74)continue;
 
-    uint32_t index = findTheIndexFromReco(trackEta, trackPhi);
+    uint32_t index = findTheIndexFromReco(trackEta, trackPhi, l1CaloClusters);
     if(index > newL1NeutralClusters->size()){
       std::cout<<"-----------------------------------FATAL ERROR PFOBjectProducer-----------------------------------"<<std::endl;
       std::cout<<"Error the calculated index is greater than the size of the clusters. I am skipping this track"<<std::endl;
@@ -127,16 +127,17 @@ void PFObjectProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
       newL1PFObject.setIsElectron(true);
       newL1PFObject.setIsChargedHadron(false);
       nElectrons++;
-    } else if(cluster.HoE() > input_HoE_cut_){
+    } //Charged Hadron ID 
+    else if(cluster.HoE() > input_HoE_cut_ || l1Track.getMomentum().perp() > 2*cluster.ecalEnergy()){
       newL1PFObject.setIsElectron(false);
       newL1PFObject.setIsChargedHadron(true);
       nChargedHadrons++;
     }
     else// neither electron or charged hadron... a muon?
       {
-      newL1PFObject.setIsElectron(false);
-      newL1PFObject.setIsChargedHadron(false);
-      nOthers++;
+	newL1PFObject.setIsElectron(false);
+	newL1PFObject.setIsChargedHadron(false);
+	nOthers++;
       }
 
     //check if the neighbor is very close by
@@ -156,7 +157,7 @@ void PFObjectProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
       }
       else{
 	if(debug)
-	  std::cout<<"Found Hadron Deposit"<<std::endl;
+	  std::cout<<"Found Neutral Hadron Deposit"<<std::endl;
 	newL1NeutralClusters->at(index).setIsNeutralHadron(true);
 	nNeutralHadrons++;
       }
@@ -191,6 +192,20 @@ void PFObjectProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 
 }
 
+uint32_t PFObjectProducer::findTheIndexFromReco( float eta, float phi, edm::Handle<std::vector<L1CaloCluster> >&l1CaloClusters){
+
+  uint32_t index = 0;
+  float minDistance = 10;
+  for(unsigned int i = 0; i < l1CaloClusters->size(); i++){
+    float tempDistance = fabs(l1CaloClusters->at(i).p4().Eta()-eta) + fabs(l1CaloClusters->at(i).p4().Phi() - phi);
+    if(fabs(l1CaloClusters->at(i).p4().Eta()-eta)< 0.05 && fabs(l1CaloClusters->at(i).p4().Phi() - phi) < 0.05 && tempDistance < minDistance){
+      minDistance = tempDistance;
+      index = i;
+    }
+  }
+  return index;
+
+}
 uint32_t PFObjectProducer::findTheIndexFromReco( float eta, float phi){
   //uint32_t PFObjectProducer::findTheIndexFromReco(float trackET, int charge, float eta, float phi){
  

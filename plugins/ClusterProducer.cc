@@ -105,6 +105,8 @@ void ClusterProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       float pt     = 0;
       float central_eta  = tRecoEta + 0.087/2; //central cluster Reco Eta
       float central_phi  = tRecoPhi + 0.087/2; //central cluster Reco Phi
+      float ecal_eta = central_eta;
+      float ecal_phi = central_phi;
       float sumCrystals  = 0; 
       float crystals[5][5] = {{0}};
       float foundCrystalsiEta[5][5] = {{0}};//remove me
@@ -170,11 +172,17 @@ void ClusterProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    //central_eta = tCrysRecoEta;
 	    //central_phi = tCrysRecoPhi;
 	    //debug put me back
-	    central_eta = foundCrystal.p4.Eta();
-	    central_phi = foundCrystal.p4.Phi();
+	    ecal_eta = foundCrystal.p4.Eta();
+	    ecal_phi = foundCrystal.p4.Phi();
 	  }
 	}
       } // End ecal crystal matching
+
+      if(HCALEt < sumCrystals){
+	central_eta = ecal_eta;
+	central_phi = ecal_phi;
+	
+      }
 
       bitset<5> activeTowerEtaPattern = 0;
       bitset<5> activeTowerPhiPattern = 0;

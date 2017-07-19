@@ -80,7 +80,7 @@ private:
   edm::EDGetTokenT< L1CaloClusterCollection > L1ClustersToken_;
   edm::EDGetTokenT< std::vector< TTTrack< Ref_Phase2TrackerDigi_ > > > ttTrackToken_;
   edm::EDGetTokenT< L1PFObjectCollection > L1PFToken_;
-  edm::EDGetTokenT< std::vector< L1CaloClusterCollection> > L1NeutralToken_;
+  edm::EDGetTokenT< L1CaloClusterCollection > L1NeutralToken_;
 
 };
 

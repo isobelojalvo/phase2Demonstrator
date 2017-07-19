@@ -103,7 +103,7 @@ public:
 private:
 
   uint32_t findTheIndexFromReco(float eta, float phi);
-
+  uint32_t findTheIndexFromReco( float eta, float phi, edm::Handle<std::vector<L1CaloCluster> >&l1CaloClusters);
   /// ///////////////// ///
   /// MANDATORY METHODS ///
   virtual void beginRun( const edm::Run& run, const edm::EventSetup& iSetup );
