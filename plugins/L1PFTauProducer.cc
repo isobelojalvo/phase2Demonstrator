@@ -52,6 +52,8 @@ void L1PFTauProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   edm::Handle< L1CaloClusterCollection > l1NeutralClusters;
   iEvent.getByToken( L1NeutralToken_, l1NeutralClusters);
 
+  edm::Handle< L1CaloClusterCollection > l1CaloClusters;
+  iEvent.getByToken( L1ClustersToken_, l1CaloClusters);
 
   edm::Handle< std::vector<L1PFObject> > l1PFChargedCandidates;
   iEvent.getByToken( L1PFToken_, l1PFChargedCandidates);

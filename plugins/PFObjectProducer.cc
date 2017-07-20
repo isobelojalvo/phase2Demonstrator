@@ -66,8 +66,8 @@ void PFObjectProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
       double eta = ptr->getMomentum().eta();
 
       //only using tracks with eta less than 1.5 and pt greater than 2.5 GeV
-      if(abs(eta)<1.5 && pt > 2.5)
-	l1Tracks.push_back(l1trackHandle->at(track_index));       
+      //if(abs(eta)<1.5 && pt > 2.5)
+      l1Tracks.push_back(l1trackHandle->at(track_index));       
 
     }
 
@@ -96,6 +96,7 @@ void PFObjectProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     L1PFObject newL1PFObject;
     float trackEta = l1Track.getMomentum().eta();
     float trackPhi = l1Track.getMomentum().phi();
+    std::cout<<"Track Pt = "<<l1Track.getMomentum().perp()<<" Eta = "<<trackEta<<" Phi = "<<trackPhi<<std::endl;
 
     if(fabs(trackEta)>1.74)continue;
 
@@ -122,21 +123,29 @@ void PFObjectProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     newL1PFObject.setHoE(cluster.HoE());
     newL1PFObject.setEoH(cluster.EoH());
     
-    // Electron ID
-    if(cluster.EoH() > input_EoH_cut_){
-      newL1PFObject.setIsElectron(true);
-      newL1PFObject.setIsChargedHadron(false);
-      nElectrons++;
-    } //Charged Hadron ID 
-    else if(cluster.HoE() > input_HoE_cut_ || l1Track.getMomentum().perp() > 2*cluster.ecalEnergy()){
+    //Charged Hadron ID 
+    if(cluster.HoE() > input_HoE_cut_ || l1Track.getMomentum().perp() > 1.1*cluster.ecalEnergy()){
       newL1PFObject.setIsElectron(false);
       newL1PFObject.setIsChargedHadron(true);
       nChargedHadrons++;
+    }// Electron ID
+    else if(l1Track.getMomentum().perp() >= 7 && cluster.EoH() > input_EoH_cut_ 
+	 && fabs(cluster.p4().Eta()-trackEta)< 0.01 
+	 && fabs(cluster.p4().Phi()-trackPhi)< 0.01 ){
+      newL1PFObject.setIsElectron(true);
+      newL1PFObject.setIsChargedHadron(false);
+      nElectrons++;
+    }
+    else if(l1Track.getMomentum().perp() < 7 && cluster.EoH() > input_EoH_cut_ ){
+      newL1PFObject.setIsElectron(true);
+      newL1PFObject.setIsChargedHadron(false);
+      nElectrons++;
     }
     else// neither electron or charged hadron... a muon?
       {
 	newL1PFObject.setIsElectron(false);
-	newL1PFObject.setIsChargedHadron(false);
+	//putting as charged hadron for now to increase efficiency
+	newL1PFObject.setIsChargedHadron(true);
 	nOthers++;
       }
 
