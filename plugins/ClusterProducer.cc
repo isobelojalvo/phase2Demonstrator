@@ -211,7 +211,7 @@ void ClusterProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       bool pi0Like = false;
       if(sumCrystals>2)
 	pi0Like = pi0BitSet(activeTowerEtaPattern, activeTowerPhiPattern);
-      if(pi0Like){
+      if(pi0Like && debug){
 	std::cout<<"Pi0 like cluster!"<<std::endl;
       }
       
@@ -246,8 +246,8 @@ void ClusterProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       }
 
       // to be tuned
-      if(pi0Like == true && HoE > 3)
-	pi0Like = false;
+      //if(pi0Like == true && HoE > 3)
+      //pi0Like = false;
 
       unsigned etaSide = 0;
       if(tEta>0)
@@ -272,8 +272,8 @@ void ClusterProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       tempCluster.setIsPi0( pi0Like );
 
 
-      if(debug)
-	if(pt>0){//put me back
+      if(debug){
+	if(pt>0){
 	  std::cout<<tempCluster<<std::endl;
 	  for(int cPhi = 0; cPhi < 5 ; cPhi++ ){
 	    for(int cEta = 0; cEta < 5; cEta++){
@@ -283,6 +283,7 @@ void ClusterProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  }
 	  std::cout<<"tEta "<<tEta<<" tPhi "<<tPhi<<std::endl;
 	}
+      }
 
       ///delete these
       /*
@@ -429,7 +430,8 @@ bool ClusterProducer::checkAndMergeCluster(L1CaloCluster &centralCluster, L1Calo
       centralCluster.setEt((float)(cluster1Et+cluster1Et));
       neigborCluster.setEt((float)0);
 
-      std::cout<<"Merging Cluster, old Cluster ET = "<<cluster1Et<<" new Cluster ET = "<<centralCluster.p4().Pt()<<std::endl;
+
+      //std::cout<<"Merging Cluster, old Cluster ET = "<<cluster1Et<<" new Cluster ET = "<<centralCluster.p4().Pt()<<std::endl;
       return true;
     }
     return false;

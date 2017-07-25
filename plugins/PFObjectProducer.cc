@@ -96,7 +96,8 @@ void PFObjectProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     L1PFObject newL1PFObject;
     float trackEta = l1Track.getMomentum().eta();
     float trackPhi = l1Track.getMomentum().phi();
-    std::cout<<"Track Pt = "<<l1Track.getMomentum().perp()<<" Eta = "<<trackEta<<" Phi = "<<trackPhi<<std::endl;
+    if(debug)
+      std::cout<<"Track Pt = "<<l1Track.getMomentum().perp()<<" Eta = "<<trackEta<<" Phi = "<<trackPhi<<std::endl;
 
     if(fabs(trackEta)>1.74)continue;
 
@@ -181,7 +182,6 @@ void PFObjectProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 	std::cout<<"Cluster "<< l1CaloClusters->at(index) <<std::endl;
 	std::cout<<"PFObject "<< newL1PFObject<<std::endl;
 	std::cout<<"---------------------------------"<<std::endl;
-	//}
 	}
     
     newL1PFObjects->push_back(newL1PFObject);
@@ -222,7 +222,6 @@ uint32_t PFObjectProducer::findTheIndexFromReco( float eta, float phi){
   triggerGeometryTools tool;
   uint32_t cEta = (tool.getCrystalIEta(eta));
   uint32_t cPhi = (tool.getCrystalIPhi(phi));
-  std::cout<<"crystal iEta "<<cEta <<" iPhi "<<cPhi<<" index: "<<index<<std::endl;
   int iEta = tool.convertGenEta(eta);
   int iPhi = tool.convertGenPhi(phi);
 
