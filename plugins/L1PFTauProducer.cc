@@ -318,7 +318,7 @@ void L1PFTauProducer::strip_alg(pftau_t &tau_cand, pf_charged_t electron_grid[5]
       unsigned int jp = j+1;
       ///////// merge_strip_algo //////////
       merge_strip_algo(neutral_cluster_grid[i][j], electron_grid[i][j], neutral_cluster_grid[i][jp], electron_grid[i][jp], temp_strip[i], algo_config);
-      std::cout<<"cluster i: "<< i <<" j: "<<j<<" et: "<<neutral_cluster_grid[i][j].ecalEnergy()<<" et2: "<< neutral_cluster_grid[i][jp].ecalEnergy()<<" tempStrip et: "<< temp_strip[i].et <<std::endl;
+      //std::cout<<"cluster i: "<< i <<" j: "<<j<<" et: "<<neutral_cluster_grid[i][j].ecalEnergy()<<" et2: "<< neutral_cluster_grid[i][jp].ecalEnergy()<<" tempStrip et: "<< temp_strip[i].et <<std::endl;
       //std::cout<<"temp_strip"
     }
   }
@@ -344,7 +344,7 @@ void L1PFTauProducer::strip_alg(pftau_t &tau_cand, pf_charged_t electron_grid[5]
     }
   }
 
-  std::cout<<"final strip et: "<<final_strip.et<<" eta: "<<final_strip.eta<<" phi: "<<final_strip.phi<<std::endl;
+  //std::cout<<"final strip et: "<<final_strip.et<<" eta: "<<final_strip.eta<<" phi: "<<final_strip.phi<<std::endl;
   //find 1 prong pi0's by combining the 1 prong and the pi0's
   if(tau_cand.tauType() == 0 && final_strip.et > algo_config.min_strip){
     //take care of eta_side
