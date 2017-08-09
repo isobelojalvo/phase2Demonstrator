@@ -86,7 +86,7 @@ void L1PFTauProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       int n_prongs_found = 1;
       float isolationSum = 0;
       L1PFObject electronGrid[5][5];
-      float isolationSumChargedHadron;
+      float isolationSumChargedHadron = 0;
       if(debug)
 	std::cout<<"Seed Cand Pt: "<<pfChargedHadron_Seed.p4().Pt()<<" Eta: "<<pfChargedHadron_Seed.p4().Eta()<<" Phi: "<<pfChargedHadron_Seed.p4().Phi()<<std::endl;
       for(unsigned int jCand = 0; jCand < l1PFChargedCandidates->size(); jCand++){
@@ -158,6 +158,8 @@ void L1PFTauProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  tempL1PFTau.setTauType(0);
 	  tempL1PFTau.setRawIso(isolationSum);
 	  tempL1PFTau.setRelIso(isolationSum/pfChargedHadron_Seed.p4().Pt());
+	  tempL1PFTau.setChargedIso(isolationSumChargedHadron);
+	  tempL1PFTau.setNeutralIso(0);
 
 	  //electronGrid[nTauCands] = electronGridTemp;
 	  tauCands[nTauCands] = tempL1PFTau;
@@ -181,6 +183,8 @@ void L1PFTauProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	
 	tempL1PFTau.setTauType(10);
 	tempL1PFTau.setRawIso(isolationSum);
+	tempL1PFTau.setChargedIso(isolationSumChargedHadron);
+	tempL1PFTau.setNeutralIso(0);
 	tempL1PFTau.setRelIso(isolationSum/totalPT);
 
 	//electronGrid[nTauCands] = electronGridTemp;	
