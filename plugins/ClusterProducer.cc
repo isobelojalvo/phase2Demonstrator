@@ -27,7 +27,7 @@
 
 #include "L1Trigger/phase2Demonstrator/interface/ClusterProducer.hh"
 #define LSB 10
-#define activityFractionPi0 0.035;
+#define activityFractionPi0 0.08;
 
 ClusterProducer::ClusterProducer(const edm::ParameterSet& cfg) :
   debug(cfg.getUntrackedParameter<bool>("debug", false)),
@@ -254,8 +254,10 @@ void ClusterProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	etaSide = 1;
 
       // RECO p4 only for debugging
-      tempCluster.setPtEtaPhiE(pt, central_eta, central_phi, pt);
+      math::PtEtaPhiMLorentzVector tempP4(pt, central_eta, central_phi, pt);
+      tempCluster.setP4(tempP4);
       
+
       tempCluster.setEt(            (unsigned) (LSB * pt)      ); // NOTE WE MULTIPLY BY LSB HERE
       tempCluster.setEcalEnergy(    sumCrystals                );
       tempCluster.setHcalEnergy(    HCALEt                     );
@@ -265,7 +267,7 @@ void ClusterProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       tempCluster.setTowerEtaSide(  (unsigned) etaSide    );
 
       tempCluster.setCrystalPhi(      (unsigned) (tPhi*5+maxCrystalPhi)     );
-      tempCluster.setCrystalEta(      (unsigned) abs(tEta*5+maxCrystalEta)  );
+      tempCluster.setCrystalEta(      (unsigned) (tEta*5+maxCrystalEta)  );
 
       tempCluster.setEoH( EoH );
       tempCluster.setHoE( HoE );
@@ -274,6 +276,7 @@ void ClusterProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
       if(debug){
 	if(pt>0){
+	  std::cout<<"tEta "<<tEta<<" tPhi "<<tPhi<<std::endl;
 	  std::cout<<tempCluster<<std::endl;
 	  for(int cPhi = 0; cPhi < 5 ; cPhi++ ){
 	    for(int cEta = 0; cEta < 5; cEta++){
@@ -281,7 +284,7 @@ void ClusterProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    }
 	    std::cout<<std::endl;
 	  }
-	  std::cout<<"tEta "<<tEta<<" tPhi "<<tPhi<<std::endl;
+	  std::cout<<"----------------------"<<std::endl;
 	}
       }
 
@@ -420,8 +423,8 @@ int ClusterProducer::getNeighbor(L1CaloCluster centralCluster, int dEta, int dPh
 }
 
 bool ClusterProducer::checkAndMergeCluster(L1CaloCluster &centralCluster, L1CaloCluster &neigborCluster){
-  if(abs(centralCluster.crystalEta() - neigborCluster.crystalEta()) < 2 && 
-     abs(centralCluster.crystalPhi() - neigborCluster.crystalPhi()) < 2 && 
+  if((centralCluster.crystalEta() - neigborCluster.crystalEta()) < 2 && 
+     (centralCluster.crystalPhi() - neigborCluster.crystalPhi()) < 2 && 
        centralCluster.p4().Pt() > neigborCluster.p4().Pt() ){
       //if passes the criteria then merge the cluster
       int cluster1Et = centralCluster.p4().Pt();
@@ -493,6 +496,10 @@ float ClusterProducer::findEcalCrystal(int tEta, int tPhi, int cEta, int cPhi,
   int findEcalIEta = tEta * 5 + cEta;
   int findEcalIPhi = tPhi * 5 + cPhi + 11; // 10 crystal offset from what is provided to match to hcal
 
+  if(findEcalIPhi > 360){
+    findEcalIPhi = findEcalIPhi - 72*5;
+  }
+
   for(auto ecalCrystal : ecalCrystals){
 
     if(ecalCrystal.iEta == findEcalIEta && 
@@ -501,7 +508,7 @@ float ClusterProducer::findEcalCrystal(int tEta, int tPhi, int cEta, int cPhi,
       foundCrystal = ecalCrystal;
       
       if(debug&&crystalET>5){
-	std::cout<<"ecalCrystal pt: "<<ecalCrystal.p4.Pt()<<" eta: "<<ecalCrystal.p4.Eta()<<" phi: "<<ecalCrystal.p4.Phi()<< " ieta "<<ecalCrystal.iEta<< " iphi "<<findEcalIPhi <<std::endl;
+	std::cout<<"ecalCrystal pt: "<<ecalCrystal.p4.Pt()<<" eta: "<<ecalCrystal.p4.Eta()<<" phi: "<<ecalCrystal.p4.Phi()<< " ieta "<<ecalCrystal.iEta<< " iphi "<< ecalCrystal.iPhi<< " found iPhi: "<<findEcalIPhi <<std::endl;
       }
       break;
     }
@@ -682,6 +689,7 @@ bool ClusterProducer::pi0BitSet(bitset<5> etaPattern, bitset<5> phiPattern){
      ){
     answer = true;
   }
+
   return answer;
 }
 

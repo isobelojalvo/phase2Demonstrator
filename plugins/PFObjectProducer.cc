@@ -26,6 +26,7 @@
 
 #include "L1Trigger/phase2Demonstrator/interface/PFObjectProducer.hh"
 
+using namespace l1t;
 
 PFObjectProducer::PFObjectProducer(const edm::ParameterSet& cfg) :
   debug(cfg.getUntrackedParameter<bool>("debug", false)),
@@ -37,14 +38,14 @@ PFObjectProducer::PFObjectProducer(const edm::ParameterSet& cfg) :
   ttTrackToken_ = consumes< std::vector< TTTrack< Ref_Phase2TrackerDigi_ > > >(L1TrackInputTag);  
 
   produces< L1CaloClusterCollection >( "L1NeutralClusters" ).setBranchAlias("L1NeutralClusters");
-  produces< L1PFObjectCollection >( "L1PFObjects" ).setBranchAlias("L1PFObjects");
+  produces< l1t::L1PFObjectCollection >( "L1PFObjects" ).setBranchAlias("L1PFObjects");
 }
 
 
 void PFObjectProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   std::unique_ptr<L1CaloClusterCollection> newL1NeutralClusters( new L1CaloClusterCollection );
-  std::unique_ptr<L1PFObjectCollection>    newL1PFObjects( new L1PFObjectCollection );
+  std::unique_ptr<l1t::L1PFObjectCollection>    newL1PFObjects( new l1t::L1PFObjectCollection );
 
   using namespace edm;
   edm::Handle< std::vector<L1CaloCluster> > l1CaloClusters;
@@ -99,7 +100,7 @@ void PFObjectProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     if(debug)
       std::cout<<"Track Pt = "<<l1Track.getMomentum().perp()<<" Eta = "<<trackEta<<" Phi = "<<trackPhi<<std::endl;
 
-    if(fabs(trackEta)>1.74)continue;
+    if(fabs(trackEta)>2.1)continue;
 
     uint32_t index = findTheIndexFromReco(trackEta, trackPhi, l1CaloClusters);
     if(index > newL1NeutralClusters->size()){
@@ -111,13 +112,26 @@ void PFObjectProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 
     //find the cluster that matches
     L1CaloCluster cluster =  newL1NeutralClusters->at(index);
-    cluster.setEt(newL1NeutralClusters->at(index).et());
+    cluster.setEt((unsigned) newL1NeutralClusters->at(index).et());
 
     //note: implement me
     newL1PFObject.setTrackRef(l1Track);
-    newL1PFObject.setPtEtaPhiE(l1Track.getMomentum().perp(),trackEta, trackPhi,l1Track.getMomentum().perp());
+    
+    math::PtEtaPhiMLorentzVector tempP4(l1Track.getMomentum().perp(),trackEta, trackPhi,l1Track.getMomentum().perp());
+    newL1PFObject.setP4(tempP4);
+
+    //std::cout<<"l1Track z: "<<l1Track.getPOCA().z()<<" PFObject z: "<<newL1PFObject.p4().z()<<std::endl;
+
+    newL1PFObject.setZ0(l1Track.getPOCA().z());
+    newL1PFObject.setChi2_4(l1Track.getChi2());
+    newL1PFObject.setChi2_5(l1Track.getChi2(5));
+    newL1PFObject.setChi2_Red(l1Track.getChi2Red());
+    newL1PFObject.setNStubs(l1Track.getStubRefs().size());
 
     // Take the cluster, use h/e to determine if hadron or electron/pi0 
+    newL1PFObject.setTowerEta(cluster.towerEta());
+    newL1PFObject.setTowerPhi(cluster.towerPhi());
+    newL1PFObject.setTowerEtaSide(cluster.towerEtaSide());
     newL1PFObject.setHcalEnergy(cluster.hcalEnergy());
     newL1PFObject.setEcalEnergy(cluster.ecalEnergy());
     newL1PFObject.setCaloEnergy(cluster.caloEnergy());
@@ -155,7 +169,7 @@ void PFObjectProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     
     /// Subtract track pt to create Neutral Photons and Hadrons
     if(l1Track.getMomentum().perp() < cluster.et()){
-      newL1NeutralClusters->at(index).setEt(cluster.et() - l1Track.getMomentum().perp());
+      newL1NeutralClusters->at(index).setEt((unsigned int)(cluster.et() - l1Track.getMomentum().perp()));
       
       //Fix me
       if(cluster.EoH() > input_EoH_cut_){

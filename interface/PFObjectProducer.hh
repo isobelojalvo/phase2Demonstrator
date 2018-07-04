@@ -87,9 +87,15 @@
 
 #include "L1Trigger/phase2Demonstrator/interface/bitfields.h"
 #include "L1Trigger/phase2Demonstrator/interface/triggerGeometryTools.hh"
-#include "DataFormats/L1CaloTrigger/interface/L1CaloCollections.h"
+//#include "DataFormats/L1CaloTrigger/interface/L1CaloCollections.h"
+#include "DataFormats/L1Trigger/interface/L1PFTau.h"
+#include "DataFormats/Phase2L1CaloTrig/interface/L1CaloCluster.h"
+#include "DataFormats/L1Trigger/interface/L1PFObject.h"
+#include "L1Trigger/phase2Demonstrator/interface/triggerGeometryTools.hh"
+
 
 using std::vector;
+
 //typedef edm::SortedCollection<EcalEBTriggerPrimitiveDigi,edm::StrictWeakOrdering<EcalEBTriggerPrimitiveDigi> > defEcalDigis ;
 
 typedef EcalTrigPrimDigiCollection defEcalDigis;

@@ -21,6 +21,7 @@
 <use   name="FWCore/MessageLogger"/>
 <use   name="DataFormats/L1Trigger"/>
 <use   name="DataFormats/L1CaloTrigger"/>
+<use   name="DataFormats/Phase2L1CaloTrig"/>
 <use   name="DataFormats/EcalDigi"/>
 <use   name="DataFormats/HepMCCandidate"/>
 <use   name="SimDataFormats/Vertex"/>

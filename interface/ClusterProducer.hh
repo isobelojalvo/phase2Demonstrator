@@ -49,10 +49,17 @@
 #include "Geometry/HcalTowerAlgo/interface/HcalTrigTowerGeometry.h"
 #include "Geometry/HcalTowerAlgo/interface/HcalGeometry.h"
 
+#include "DataFormats/Math/interface/Point3D.h"
+#include "DataFormats/Math/interface/Vector3D.h"
+#include "DataFormats/Math/interface/PtEtaPhiMass.h"
+#include "DataFormats/GeometryVector/interface/GlobalVector.h"
+#include "DataFormats/Math/interface/LorentzVector.h"
+
 #include <bitset>
 using std::bitset;
 
-#include "DataFormats/L1CaloTrigger/interface/L1CaloCollections.h"
+//#include "DataFormats/L1CaloTrigger/interface/L1CaloCollections.h"
+#include "DataFormats/Phase2L1CaloTrig/interface/L1CaloCluster.h"
 #include "L1Trigger/phase2Demonstrator/interface/triggerGeometryTools.hh"
 
 using std::vector;

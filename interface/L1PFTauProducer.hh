@@ -1,6 +1,3 @@
-#include <vector>
-#include <iostream>
-
 #ifndef L1PFTAU_PRDC_H
 #define L1PFTAU_PRDC_H
 
@@ -49,18 +46,21 @@
 #include "Geometry/HcalTowerAlgo/interface/HcalGeometry.h"
 
 #include "DataFormats/L1Trigger/interface/L1PFTau.h"
-#include "DataFormats/L1CaloTrigger/interface/L1CaloCollections.h"
+#include "DataFormats/Phase2L1CaloTrig/interface/L1CaloCluster.h"
+#include "DataFormats/L1Trigger/interface/L1PFObject.h"
 #include "L1Trigger/phase2Demonstrator/interface/triggerGeometryTools.hh"
 
 //#include "L1Trigger/phase2Demonstrator/plugins/strip_alg.hh"
+using namespace l1t;
 
-typedef L1PFTau pftau_t;
-typedef L1PFObject pf_charged_t;
+typedef l1t::L1PFTau pftau_t;
+typedef l1t::L1PFObject pf_charged_t;
 typedef L1CaloCluster cluster_t;
 
 typedef struct{
   float three_prong_seed;
   float three_prong_delta_r;
+  float three_prong_max_delta_Z;
   float isolation_delta_r;
   float one_prong_seed;
   float dummy;
@@ -85,6 +85,7 @@ typedef L1PFObject pf_charged_t;
 typedef L1CaloCluster cluster_t;
 
 using std::vector;
+using namespace l1t;
 
 class L1PFTauProducer : public edm::EDProducer {
 
@@ -98,6 +99,7 @@ private:
   uint32_t findTheIndexFromReco( float eta, float phi, int iEta_add = 0, int iPhi_add = 0);
   void strip_alg(pftau_t &tau_cand, pf_charged_t electron_grid[5][5],  edm::Handle<std::vector<L1CaloCluster> >&neutral_clusters, algo_config_t algo_config);
   cluster_t find_matched_cluster(edm::Handle<std::vector<L1CaloCluster> >&neutral_clusters, float eta_1, float phi_1);
+  cluster_t find_matched_cluster_tower(edm::Handle<std::vector<L1CaloCluster> >&neutral_clusters, unsigned eta, unsigned phi, int eta_side);
   void merge_strip_algo(cluster_t cluster_1, pf_charged_t electron_1, cluster_t cluster_2, pf_charged_t electron_2, strip_t &strip, algo_config_t algo_config);
   float weighted_avg_phi_c_p(cluster_t cluster_1, pf_charged_t pf_charged_1);
   float weighted_avg_eta_c_p(cluster_t cluster_1, pf_charged_t pf_charged_1);
@@ -119,7 +121,10 @@ private:
   bool debug;
   int input_EoH_cut_;
   int input_HoE_cut_;
+  int input_min_n_stubs_;
+  int input_max_chi2_; 
   float three_prong_delta_r_;
+  float three_prong_max_delta_Z_;
   float isolation_delta_r_;
   edm::InputTag L1TrackInputTag;
   edm::EDGetTokenT< L1CaloClusterCollection > L1ClustersToken_;
