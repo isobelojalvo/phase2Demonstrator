@@ -250,9 +250,10 @@ void ClusterProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       //pi0Like = false;
 
       unsigned etaSide = 0;
-      if(tEta>0)
+      if(tEta>-1)
 	etaSide = 1;
 
+      if(pt==0)pt=0.00000001; // for initializing the p4 vector
       // RECO p4 only for debugging
       math::PtEtaPhiMLorentzVector tempP4(pt, central_eta, central_phi, pt);
       tempCluster.setP4(tempP4);

@@ -100,9 +100,13 @@ void PFObjectProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     if(debug)
       std::cout<<"Track Pt = "<<l1Track.getMomentum().perp()<<" Eta = "<<trackEta<<" Phi = "<<trackPhi<<std::endl;
 
-    if(fabs(trackEta)>2.1)continue;
+    if(fabs(trackEta)>1.74)continue;
 
     uint32_t index = findTheIndexFromReco(trackEta, trackPhi, l1CaloClusters);
+    if(debug){
+      std::cout<<"Matched Cluster Index using cluster matching: "<<index<<std::endl;
+      std::cout<<"Matched Cluster Index using geometry tool   : "<<findTheIndexFromReco(trackEta, trackPhi)<<std::endl;
+    }
     if(index > newL1NeutralClusters->size()){
       std::cout<<"-----------------------------------FATAL ERROR PFOBjectProducer-----------------------------------"<<std::endl;
       std::cout<<"Error the calculated index is greater than the size of the clusters. I am skipping this track"<<std::endl;
@@ -216,7 +220,7 @@ void PFObjectProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 }
 
 uint32_t PFObjectProducer::findTheIndexFromReco( float eta, float phi, edm::Handle<std::vector<L1CaloCluster> >&l1CaloClusters){
-
+  bool match_found = false;
   uint32_t index = 0;
   float minDistance = 10;
   for(unsigned int i = 0; i < l1CaloClusters->size(); i++){
@@ -224,8 +228,21 @@ uint32_t PFObjectProducer::findTheIndexFromReco( float eta, float phi, edm::Hand
     if(fabs(l1CaloClusters->at(i).p4().Eta()-eta)< 0.05 && fabs(l1CaloClusters->at(i).p4().Phi() - phi) < 0.05 && tempDistance < minDistance){
       minDistance = tempDistance;
       index = i;
+      match_found = true;
     }
   }
+
+  if(!match_found){
+    if(phi<0)
+      phi = 3.14159*2+phi;
+    int tPhi = phi/0.0871380;
+    
+    int tEta = eta/0.087+20;
+    
+    
+    index = 72*(tEta)+tPhi;
+  }
+
   return index;
 
 }
@@ -244,14 +261,15 @@ uint32_t PFObjectProducer::findTheIndexFromReco( float eta, float phi){
   else
     index = (uint32_t) (( iEta )*72 + iPhi) ;
 
-  /*
-  if(trackET<15 && charge == -1){
-  if(eta < 0)
-    index = (uint32_t) ((20 - iEta)*72 + iPhi - 2);
-  else
-    index = (uint32_t) (( iEta )*72 + iPhi) ;
-  }
-  */
+
+  if(phi<0)
+    phi = phi + 3.14159;
+  int tPhi = phi/0.0871380;
+
+  int tEta = eta/0.087+20;
+
+
+  index = 72*(tEta)+tPhi;
   //std::cout<<"tower iEta "<<iEta <<" iPhi "<<iPhi<<" index: "<<index<<std::endl;
   //iEta 0 iPhi 57 index: 7257
   return index;

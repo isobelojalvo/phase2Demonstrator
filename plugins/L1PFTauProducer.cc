@@ -32,7 +32,7 @@ L1PFTauProducer::L1PFTauProducer(const edm::ParameterSet& cfg) :
   input_EoH_cut_(       cfg.getUntrackedParameter<int>("EoH_cut", 2)), // LSB is 0.1 so 2 corresonds to 0.2
   input_HoE_cut_(       cfg.getUntrackedParameter<int>("HoE_cut", 8)), // LSB is 0.1 so 8 corresonds to 0.8
   input_min_n_stubs_(   cfg.getUntrackedParameter<int>("min_n_stubs", 4)), // LSB is 0.1 so 8 corresonds to 0.8
-  input_max_chi2_(      cfg.getUntrackedParameter<int>("max_chi2", 10)), // LSB is 0.1 so 8 corresonds to 0.8
+  input_max_chi2_(      cfg.getUntrackedParameter<int>("max_chi2", 15)), // LSB is 0.1 so 8 corresonds to 0.8
   //input_pt_seed_(       cfg.getUntrackedParameter<double>("pt_seed", 0.2)), // LSB is 0.1 so 8 corresonds to 0.8
   three_prong_delta_r_( cfg.getUntrackedParameter<double>("three_prong_dr", 0.2)), // LSB is 0.1 so 8 corresonds to 0.8
   three_prong_max_delta_Z_( cfg.getUntrackedParameter<double>("three_prong_max_dZ", 0.3)), // LSB is 0.1 so 8 corresonds to 0.8
@@ -207,7 +207,7 @@ void L1PFTauProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       }
       // Create the 1 Prong Taus
       if(n_prongs_found==1||n_prongs_found==2){
-	if(pfChargedHadron_Seed.p4().Pt() > 3){
+	if(pfChargedHadron_Seed.p4().Pt() > 2){
 	  if(n_prongs_found==2){
 	    //Add second prong to Isolation Cone
 	    isolationSumChargedHadron += tau_cand[1].p4().Pt();	    
@@ -414,9 +414,10 @@ void L1PFTauProducer::strip_alg(pftau_t &tau_cand, pf_charged_t electron_grid[5]
     for( int j = -2; j<3; j++){
       int grid_eta = tau_teta + i; // subtract two clusters to center the grid
       int grid_phi = tau_tphi + j; // subtract two clusters to center the grid
-      if(grid_eta < 1){
-	tau_etaside = 0;
-	grid_eta = tau_teta - i;
+      int grid_etaside = tau_etaside;
+      if(grid_eta < 0){
+	grid_etaside = 0;
+	grid_eta = abs(grid_eta);
       }
 
       if(grid_phi < 0){
@@ -424,7 +425,7 @@ void L1PFTauProducer::strip_alg(pftau_t &tau_cand, pf_charged_t electron_grid[5]
       }
 
       //neutral_cluster_grid[i][j] = find_matched_cluster(neutral_clusters, grid_eta, grid_phi);
-      neutral_cluster_grid[i+2][j+2] = find_matched_cluster_tower(neutral_clusters, (unsigned)grid_eta, grid_phi, tau_etaside);
+      neutral_cluster_grid[i+2][j+2] = find_matched_cluster_tower(neutral_clusters, (unsigned)grid_eta, grid_phi, grid_etaside);
 
     }
   }
@@ -586,12 +587,12 @@ cluster_t L1PFTauProducer::find_matched_cluster_tower(edm::Handle<std::vector<L1
     int cluster_etaside   = neutral_clusters->at(i).towerEtaSide();
 
     //if(debug && neutral_clusters->at(i).et()>0)
-    //std::cout<<"              cluster eta: "<<eta<<"  phi: "<<phi<<"  eta_side: "<<eta_side<<std::endl;
+      //std::cout<<"              cluster eta: "<<eta<<"  phi: "<<phi<<"  eta_side: "<<eta_side<<std::endl;
    
     if(cluster_teta == eta && cluster_tphi == phi && cluster_etaside == eta_side){
       cluster_to_return = neutral_clusters->at(i);
-      //if(debug)
-      //std::cout<<"Matched Cluster Tower Eta: "<<cluster_teta<<" phi: "<<cluster_tphi<<" cluster_etaside: "<<cluster_etaside<<std::endl;
+      if(debug)
+	std::cout<<"Matched Cluster Tower Eta: "<<cluster_teta<<" phi: "<<cluster_tphi<<" cluster_etaside: "<<cluster_etaside<<std::endl;
       break;
    }
   }
@@ -615,13 +616,13 @@ void L1PFTauProducer::merge_strip_algo(cluster_t cluster_1, pf_charged_t electro
     strip.et  = cluster_1.ecalEnergy() + cluster_2.ecalEnergy();
     strip.eta = weighted_avg_eta_c_c(cluster_1, cluster_2);
     strip.phi = weighted_avg_phi_c_c(cluster_1, cluster_2);
-  }
-  else if(strip.et == 0 && cluster_1.ecalEnergy()>0){
+  } //if clusters ddon't merge then take the higher pt cluster if it is greater than current strip pt and it is pi0 like
+  else if(strip.et < cluster_1.ecalEnergy() && cluster_1.ecalEnergy() > 0 && cluster_1.ecalEnergy() > cluster_2.ecalEnergy()){
     strip.et  = cluster_1.ecalEnergy();
     strip.eta = cluster_1.p4().Eta();
     strip.phi = cluster_1.p4().Phi();
   }    
-  else if(strip.et == 0 && cluster_2.ecalEnergy()>0){
+  else if(strip.et < cluster_2.ecalEnergy() && cluster_2.ecalEnergy()>0 && cluster_2.ecalEnergy() > cluster_1.ecalEnergy()){
     strip.et  = cluster_2.ecalEnergy();
     strip.eta = cluster_2.p4().Eta();
     strip.phi = cluster_2.p4().Phi();
