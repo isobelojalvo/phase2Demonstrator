@@ -59,7 +59,7 @@
 using std::bitset;
 
 //#include "DataFormats/L1CaloTrigger/interface/L1CaloCollections.h"
-#include "DataFormats/Phase2L1CaloTrig/interface/L1CaloCluster.h"
+#include "DataFormats/CaloClusters/interface/L1CaloCluster.h"
 #include "L1Trigger/phase2Demonstrator/interface/triggerGeometryTools.hh"
 
 using std::vector;

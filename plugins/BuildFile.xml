@@ -5,7 +5,7 @@
   <use   name="PhysicsTools/UtilAlgos"/>
   <use   name="CommonTools/UtilAlgos"/>
   <use   name="DataFormats/L1CaloTrigger"/>
-  <use   name="DataFormats/Phase2L1CaloTrig"/>
+  <use   name="DataFormats/CaloClusters"/>
   <use   name="SimDataFormats/CaloHit"/>
   <use   name="FWCore/ServiceRegistry"/>
   <use   name="Geometry/Records"/>

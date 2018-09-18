@@ -73,7 +73,7 @@
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
 
-#include "DataFormats/Phase2L1CaloTrig/interface/L1CaloCluster.h"
+#include "DataFormats/CaloClusters/interface/L1CaloCluster.h"
 #include "DataFormats/PatCandidates/interface/Tau.h"
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 

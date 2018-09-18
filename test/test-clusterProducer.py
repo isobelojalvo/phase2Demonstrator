@@ -15,7 +15,6 @@ process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('Configuration.StandardSequences.SimL1Emulator_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
-process.load('L1Trigger.TrackFindingTracklet.L1TrackletTracks_cff')
 
 
 from Configuration.AlCa.GlobalTag import GlobalTag
